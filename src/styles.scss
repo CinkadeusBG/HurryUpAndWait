@@ -1,0 +1,110 @@
+@import 'primeng/resources/themes/lara-dark-blue/theme.css';
+@import 'primeng/resources/primeng.min.css';
+@import 'primeicons/primeicons.css';
+
+:root {
+  --bg-base: #0b1020;
+  --surface-glass: rgba(18, 24, 42, 0.72);
+  --text-primary: #f3f6ff;
+  --text-muted: #9aa8c7;
+  --accent-primary: #1e6fd9;
+  --accent-gold: #c9a227;
+  --resort-gradient: linear-gradient(135deg, #0d3b7a, #1e6fd9);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass-panel,
+.glass-card {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.glass-panel {
+  background: var(--surface-glass);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.p-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.p-card .p-card-body,
+.p-card .p-card-content {
+  padding: 0.9rem 1rem;
+}
+
+.p-inputtext,
+.p-dropdown {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.p-dropdown-panel {
+  background: #12182a !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45) !important;
+  z-index: 1200 !important;
+}
+
+.p-dropdown-items-wrapper,
+.p-dropdown-header,
+.p-dropdown-filter-container {
+  background: #12182a;
+}
+
+.p-dropdown-item {
+  color: var(--text-primary) !important;
+  background: transparent;
+
+  &:not(.p-highlight):not(.p-disabled):hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-primary) !important;
+  }
+
+  &.p-highlight {
+    background: color-mix(in srgb, var(--accent-primary) 35%, #12182a) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+.p-connected-overlay {
+  z-index: 1200 !important;
+}
+
+.p-accordion .p-accordion-header-link {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+}
+
+.p-accordion .p-accordion-content {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+}

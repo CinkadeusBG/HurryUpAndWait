@@ -1,0 +1,83 @@
+<header class="park-header glass-panel" [style.--resort-accent]="theme.accent">
+  <div class="brand-row">
+    <div>
+      <p class="eyebrow">{{ appName }}</p>
+      <h1 class="title">{{ favoritesMode ? 'My Favorites' : 'Live Wait Times' }}</h1>
+    </div>
+    <div class="header-actions">
+      <div
+        class="park-time-badge"
+        [attr.aria-label]="parkTimeAriaLabel()"
+        title="Local park time"
+      >
+        <i class="pi pi-clock" aria-hidden="true"></i>
+        <span class="park-time-value">{{ parkLocalTime() }}</span>
+        <span class="park-time-label">Park time</span>
+      </div>
+
+      @if (weatherState.weather; as weather) {
+        <div class="weather-badge" [attr.aria-label]="weatherAriaLabel()" title="{{ weather.label }}">
+          <i [class]="weather.iconClass" aria-hidden="true"></i>
+          <span class="weather-temp">{{ weather.temperatureF }}°</span>
+          <span class="weather-label">{{ weather.label }}</span>
+        </div>
+      } @else if (weatherState.loading) {
+        <div class="weather-badge weather-badge-loading" aria-label="Loading weather">
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="selector-row">
+    <p-selectButton
+      [options]="resortOptions"
+      [ngModel]="selectedResort"
+      (ngModelChange)="onResortSelect($event)"
+      optionLabel="label"
+      optionValue="value"
+      styleClass="resort-toggle"
+      [disabled]="favoritesMode"
+    ></p-selectButton>
+
+    <button
+      type="button"
+      class="favorites-toggle"
+      [class.active]="favoritesMode"
+      (click)="onFavoritesToggle()"
+      [attr.aria-pressed]="favoritesMode"
+    >
+      <i class="pi pi-star-fill"></i>
+      <span>Favorites</span>
+      @if (favoriteCount > 0) {
+        <span class="favorites-count">{{ favoriteCount }}</span>
+      }
+    </button>
+  </div>
+
+  @if (favoritesMode) {
+    <p class="favorites-hint">Showing starred attractions across all parks and resorts.</p>
+  } @else {
+    <div class="park-chip-scroll" role="tablist" aria-label="Select park">
+      @for (park of parks; track park.id) {
+        <button
+          type="button"
+          class="park-chip"
+          role="tab"
+          [attr.aria-selected]="park.id === selectedParkId"
+          [class.active]="park.id === selectedParkId"
+          (click)="onParkSelect(park.id)"
+        >
+          {{ park.shortName }}
+        </button>
+      }
+    </div>
+  }
+
+  <div class="header-footer">
+    <p class="refresh-label">
+      {{ lastUpdatedLabel() }}
+      <span class="refresh-hint">· Auto-refresh every 3 min</span>
+    </p>
+  </div>
+</header>

@@ -1,0 +1,91 @@
+<p-card styleClass="attraction-card glass-card">
+  <button
+    type="button"
+    class="favorite-ribbon"
+    [class.is-favorite]="attraction.isFavorite"
+    (click)="onFavoriteClick()"
+    [attr.aria-label]="attraction.isFavorite ? 'Remove favorite' : 'Add favorite'"
+  >
+    <i [class]="attraction.isFavorite ? 'pi pi-star-fill' : 'pi pi-star'"></i>
+  </button>
+
+  <div class="card-layout">
+    <div class="card-main">
+      <div class="card-header">
+        <h3 class="attraction-name">{{ attraction.name }}</h3>
+      </div>
+
+      <div class="card-meta">
+        @if (showParkName && attraction.parkName) {
+          <span class="meta-chip park-chip">{{ attraction.parkName }}</span>
+        }
+        @if (showStatusChip) {
+          <span class="meta-chip status-chip" [class]="statusChipClass">
+            {{ attraction.displayStatus }}
+          </span>
+        }
+        @if (attraction.area) {
+          <span class="meta-chip">{{ attraction.area }}</span>
+        }
+        @if (showAttractionType) {
+          <span class="meta-chip">{{ attractionTypeLabel }}</span>
+        }
+        <span class="meta-chip type-chip">{{ entityTypeLabel }}</span>
+      </div>
+    </div>
+
+    @if (isContinuousExperience) {
+      <div class="hours-block" [class.is-unavailable]="!isOpen">
+        @if (isOpen && attraction.waitTime !== null) {
+          <div class="wait-block" [class]="waitClass">
+            <span class="wait-unit">min</span>
+            <span class="wait-value">{{ waitDisplay }}</span>
+          </div>
+        }
+        <span class="hours-label">{{ isDown ? 'Status' : 'Hours' }}</span>
+        <span class="hours-value">{{
+          isDown
+            ? 'Temporarily down'
+            : operatingHoursLabel ?? (isOpen ? 'No hours listed' : '—')
+        }}</span>
+      </div>
+    } @else if (isPerformanceShow) {
+      <div class="show-times-block" [class.is-unavailable]="!isOpen">
+        <span class="show-times-label">{{ isDown ? 'Status' : 'Show times' }}</span>
+        @if (relevantShowTimes.length > 0) {
+          <ul class="show-times-list">
+            @for (time of visibleShowTimes; track time) {
+              <li>{{ time }}</li>
+            }
+          </ul>
+          @if (hasMoreShowTimes) {
+            <button type="button" class="show-times-toggle" (click)="toggleShowTimes()">
+              @if (showAllTimes) {
+                Show less
+              } @else {
+                +{{ hiddenShowTimeCount }} more
+              }
+            </button>
+          }
+        } @else {
+          <span class="show-times-empty">{{
+            isDown
+              ? 'Temporarily down'
+              : isOpen && attraction.showtimes.length > 0
+                ? 'No more today'
+                : isOpen
+                  ? 'No times listed'
+                  : '—'
+          }}</span>
+        }
+      </div>
+    } @else {
+      <div class="wait-block" [class]="waitClass" [class.is-unavailable]="!isOpen">
+        @if (isOpen && attraction.waitTime !== null) {
+          <span class="wait-unit">min</span>
+        }
+        <span class="wait-value">{{ isDown ? 'Down' : waitDisplay }}</span>
+      </div>
+    }
+  </div>
+</p-card>

@@ -1,0 +1,21 @@
+<section class="panel glass-panel">
+  <h2 class="panel-title">Today's Park Hours</h2>
+
+  @if (todayEntries.length === 0) {
+    <p class="empty-state">No schedule data available for today.</p>
+  } @else {
+    <ul class="hours-list">
+      @for (entry of todayEntries; track entryTrackId(entry)) {
+        <li class="hours-item">
+          <div class="hours-type">{{ entryLabel(entry) }}</div>
+          @if (entrySubtitle(entry); as subtitle) {
+            <div class="hours-desc">{{ subtitle }}</div>
+          }
+          <div class="hours-time">
+            {{ formatTime(entry.openingTime) }} – {{ formatTime(entry.closingTime) }}
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

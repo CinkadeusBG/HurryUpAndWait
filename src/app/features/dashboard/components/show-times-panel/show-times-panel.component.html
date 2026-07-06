@@ -1,0 +1,22 @@
+<section class="panel glass-panel">
+  <h2 class="panel-title">Show Times</h2>
+
+  @if (tick$ | async; as tick) {
+    @if (showsWithTimes(tick).length === 0) {
+      <p class="empty-state">No upcoming show times for today.</p>
+    } @else {
+      <ul class="show-list">
+        @for (show of showsWithTimes(tick); track show.id) {
+          <li class="show-item">
+            <h3 class="show-name">{{ show.name }}</h3>
+            <div class="show-times">
+              @for (time of upcomingShowTimes(show, tick); track time) {
+                <span class="time-chip">{{ time }}</span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

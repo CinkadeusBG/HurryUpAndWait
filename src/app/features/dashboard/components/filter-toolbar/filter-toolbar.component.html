@@ -1,0 +1,48 @@
+<div class="filter-toolbar glass-panel">
+  <p-iconField iconPosition="left" class="search-field">
+    <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+    <input
+      pInputText
+      type="search"
+      placeholder="Search rides & shows"
+      [ngModel]="search"
+      (ngModelChange)="searchChange.emit($event)"
+      aria-label="Search attractions"
+    />
+  </p-iconField>
+
+  <div class="filter-row">
+    <p-dropdown
+      [options]="sortOptions"
+      [ngModel]="sort"
+      (ngModelChange)="sortChange.emit($event)"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Sort by"
+      appendTo="body"
+      styleClass="filter-dropdown"
+    ></p-dropdown>
+
+    <p-dropdown
+      [options]="entityOptions"
+      [ngModel]="entityFilter"
+      (ngModelChange)="entityFilterChange.emit($event)"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Type"
+      appendTo="body"
+      styleClass="filter-dropdown"
+    ></p-dropdown>
+
+    <p-dropdown
+      [options]="waitRangeOptions"
+      [ngModel]="waitRange"
+      (ngModelChange)="waitRangeChange.emit($event)"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Wait range"
+      appendTo="body"
+      styleClass="filter-dropdown"
+    ></p-dropdown>
+  </div>
+</div>

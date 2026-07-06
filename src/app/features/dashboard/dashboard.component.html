@@ -1,0 +1,101 @@
+<div class="dashboard" [class.favorites-mode]="favoritesMode">
+  <app-park-header
+    [selectedResort]="selectedResort"
+    [selectedParkId]="selectedParkId"
+    [parks]="parks"
+    [lastRefreshed]="lastRefreshed"
+    [parkTimezone]="parkTimezone"
+    [favoritesMode]="favoritesMode"
+    [favoriteCount]="favoriteCount"
+    (resortChange)="onResortChange($event)"
+    (parkChange)="onParkChange($event)"
+    (favoritesModeChange)="onFavoritesModeChange($event)"
+  ></app-park-header>
+
+  @if (error) {
+    <p-message severity="error" [text]="error" styleClass="error-banner"></p-message>
+  }
+
+  <main class="dashboard-main">
+    @if (activeTab === 'waits') {
+      <app-filter-toolbar
+        [search]="search"
+        [sort]="sort"
+        [entityFilter]="entityFilter"
+        [waitRange]="waitRange"
+        (searchChange)="search = $event"
+        (sortChange)="sort = $event"
+        (entityFilterChange)="entityFilter = $event"
+        (waitRangeChange)="waitRange = $event"
+      ></app-filter-toolbar>
+
+      <section class="attractions-section">
+        @if (loading) {
+          <div class="skeleton-grid">
+            @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+              <p-skeleton height="7rem" borderRadius="16px"></p-skeleton>
+            }
+          </div>
+        } @else if (openAttractions.length === 0 && closedAttractions.length === 0) {
+          <p class="empty-state">{{ emptyStateMessage }}</p>
+        } @else if (openAttractions.length > 0) {
+          <div class="attraction-grid">
+            @for (attraction of openAttractions; track attraction.id) {
+              <app-attraction-card
+                [attraction]="attraction"
+                [showParkName]="favoritesMode"
+                (favoriteToggle)="onFavoriteToggle($event)"
+              ></app-attraction-card>
+            }
+          </div>
+        }
+      </section>
+
+      @if (!loading) {
+        <app-closed-rides-panel
+          [closedAttractions]="closedAttractions"
+          [showParkName]="favoritesMode"
+          (favoriteToggle)="onFavoriteToggle($event)"
+        ></app-closed-rides-panel>
+      }
+    }
+
+    @if (activeTab === 'hours') {
+      <app-park-hours-panel [schedule]="schedule"></app-park-hours-panel>
+    }
+
+    @if (activeTab === 'shows') {
+      <app-show-times-panel [shows]="shows"></app-show-times-panel>
+    }
+
+    @if (activeTab === 'stats') {
+      <app-quick-stats-panel
+        [openAttractions]="openAttractions"
+        [closedCount]="closedAttractions.length"
+      ></app-quick-stats-panel>
+    }
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Powered by
+      <a href="https://themeparks.wiki" target="_blank" rel="noopener noreferrer"
+        >ThemeParks.wiki</a
+      >
+    </p>
+  </footer>
+
+  <nav class="bottom-nav glass-panel" aria-label="Dashboard sections">
+    @for (item of bottomNav; track item.id) {
+      <button
+        type="button"
+        class="bottom-nav-btn"
+        [class.active]="activeTab === item.id"
+        (click)="setActiveTab(item.id)"
+      >
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </button>
+    }
+  </nav>
+</div>

@@ -1,0 +1,28 @@
+.filter-toolbar {
+  position: relative;
+  z-index: 1;
+  padding: 0.85rem 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.search-field {
+  width: 100%;
+
+  input {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,15 @@
+<section class="panel glass-panel">
+  <h2 class="panel-title">Quick Stats</h2>
+
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <article class="stat-card">
+        <p class="stat-label">{{ stat.label }}</p>
+        <p class="stat-value">{{ stat.value }}</p>
+        @if (stat.hint) {
+          <p class="stat-hint">{{ stat.hint }}</p>
+        }
+      </article>
+    }
+  </div>
+</section>

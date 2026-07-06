@@ -1,0 +1,225 @@
+.park-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 1rem 1rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-glass);
+}
+
+.brand-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+.park-time-badge,
+.weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  white-space: nowrap;
+
+  i {
+    color: var(--resort-accent, var(--accent-primary));
+    font-size: 0.95rem;
+  }
+}
+
+.park-time-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.park-time-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.weather-badge-loading {
+  min-width: 2.25rem;
+  justify-content: center;
+  padding-inline: 0.55rem;
+
+  i {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+.weather-temp {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.weather-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  max-width: 5.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--resort-accent, var(--accent-primary));
+}
+
+.title {
+  margin: 0.15rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.selector-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.favorites-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-radius: 0.65rem;
+  padding: 0 0.85rem;
+  min-height: 44px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  i {
+    color: var(--accent-gold);
+    font-size: 0.9rem;
+  }
+
+  &.active {
+    background: color-mix(in srgb, var(--accent-gold) 22%, transparent);
+    border-color: var(--accent-gold);
+    color: #fff7d6;
+  }
+}
+
+.favorites-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.72rem;
+}
+
+.favorites-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.park-chip-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.75rem 0 0.35rem;
+  margin-top: 0.5rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.park-chip {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  min-height: 44px;
+
+  &.active {
+    background: color-mix(in srgb, var(--resort-accent, var(--accent-primary)) 24%, transparent);
+    border-color: var(--resort-accent, var(--accent-primary));
+    transform: translateY(-1px);
+  }
+}
+
+.header-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.refresh-label {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.refresh-hint {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+:host ::ng-deep .resort-toggle {
+  flex: 1;
+  min-width: 0;
+
+  .p-selectbutton {
+    display: flex;
+    width: 100%;
+  }
+
+  .p-button {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.82rem;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 420px) {
+  .park-time-label,
+  .weather-label {
+    display: none;
+  }
+
+  .refresh-hint {
+    display: none;
+  }
+}
