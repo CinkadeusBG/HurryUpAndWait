@@ -16,10 +16,43 @@
       </div>
 
       @if (weatherState.weather; as weather) {
-        <div class="weather-badge" [attr.aria-label]="weatherAriaLabel()" title="{{ weather.label }}">
-          <i [class]="weather.iconClass" aria-hidden="true"></i>
+        <div class="weather-badge" [attr.aria-label]="weatherAriaLabel()" [title]="weather.label">
+          <span class="weather-icon" [class]="'weather-' + weather.iconVariant" aria-hidden="true">
+            @switch (weather.iconVariant) {
+              @case ('clear-day') {
+                <i class="pi pi-sun"></i>
+              }
+              @case ('clear-night') {
+                <i class="pi pi-moon"></i>
+              }
+              @case ('partly-cloudy-day') {
+                <i class="pi pi-sun weather-icon-back"></i>
+                <i class="pi pi-cloud weather-icon-front"></i>
+              }
+              @case ('partly-cloudy-night') {
+                <i class="pi pi-moon weather-icon-back"></i>
+                <i class="pi pi-cloud weather-icon-front"></i>
+              }
+              @case ('cloudy') {
+                <i class="pi pi-cloud"></i>
+              }
+              @case ('fog') {
+                <i class="pi pi-cloud weather-icon-fog"></i>
+              }
+              @case ('rain') {
+                <i class="pi pi-cloud weather-icon-back"></i>
+                <i class="pi pi-cloud-download weather-icon-front"></i>
+              }
+              @case ('snow') {
+                <i class="pi pi-cloud weather-icon-snow"></i>
+              }
+              @case ('thunder') {
+                <i class="pi pi-cloud"></i>
+                <i class="pi pi-bolt weather-icon-bolt"></i>
+              }
+            }
+          </span>
           <span class="weather-temp">{{ weather.temperatureF }}°</span>
-          <span class="weather-label">{{ weather.label }}</span>
         </div>
       } @else if (weatherState.loading) {
         <div class="weather-badge weather-badge-loading" aria-label="Loading weather">

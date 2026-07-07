@@ -34,10 +34,67 @@
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
   white-space: nowrap;
+}
 
-  i {
+.park-time-badge i {
+  color: var(--resort-accent, var(--accent-primary));
+  font-size: 0.95rem;
+}
+
+.weather-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+
+  > i {
     color: var(--resort-accent, var(--accent-primary));
-    font-size: 0.95rem;
+    line-height: 1;
+  }
+}
+
+.weather-clear-day i,
+.weather-clear-night i,
+.weather-cloudy i {
+  font-size: 1rem;
+}
+
+.weather-partly-cloudy-day,
+.weather-partly-cloudy-night,
+.weather-rain {
+  .weather-icon-back {
+    position: absolute;
+    left: -1px;
+    bottom: 0;
+    font-size: 0.62rem;
+  }
+
+  .weather-icon-front {
+    margin-left: 0.4rem;
+    font-size: 1rem;
+  }
+}
+
+.weather-fog i,
+.weather-snow i {
+  font-size: 1rem;
+  opacity: 0.88;
+}
+
+.weather-thunder {
+  .pi-cloud {
+    font-size: 1rem;
+  }
+
+  .weather-icon-bolt {
+    position: absolute;
+    right: -3px;
+    bottom: -1px;
+    font-size: 0.58rem;
+    color: #facc15 !important;
   }
 }
 
@@ -67,14 +124,6 @@
   font-size: 0.92rem;
   font-weight: 700;
   line-height: 1;
-}
-
-.weather-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  max-width: 5.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .eyebrow {
@@ -214,8 +263,7 @@
 }
 
 @media (max-width: 420px) {
-  .park-time-label,
-  .weather-label {
+  .park-time-label {
     display: none;
   }
 

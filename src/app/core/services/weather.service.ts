@@ -65,7 +65,7 @@ export class WeatherService {
       .get<OpenMeteoCurrentResponse>(`${WEATHER_API_BASE_URL}/forecast`, { params })
       .pipe(
         map((response): ResortWeatherState => {
-          const { label, iconClass } = mapWeatherCode(
+          const { label, iconVariant } = mapWeatherCode(
             response.current.weather_code,
             response.current.is_day === 1
           );
@@ -74,7 +74,7 @@ export class WeatherService {
             resort,
             temperatureF: formatTemperatureF(response.current.temperature_2m),
             label,
-            iconClass,
+            iconVariant,
             isDay: response.current.is_day === 1,
             observedAt: new Date(response.current.time),
           };

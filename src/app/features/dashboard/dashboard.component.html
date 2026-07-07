@@ -33,7 +33,7 @@
         @if (loading) {
           <div class="skeleton-grid">
             @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-              <p-skeleton height="7rem" borderRadius="16px"></p-skeleton>
+              <p-skeleton height="10rem" borderRadius="16px"></p-skeleton>
             }
           </div>
         } @else if (openAttractions.length === 0 && closedAttractions.length === 0) {

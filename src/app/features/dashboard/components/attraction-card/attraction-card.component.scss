@@ -1,5 +1,6 @@
 :host {
   display: block;
+  height: 100%;
 }
 
 :host.status-down ::ng-deep .attraction-card.p-card {
@@ -27,11 +28,13 @@
 :host ::ng-deep .attraction-card.p-card {
   position: relative;
   overflow: hidden;
+  height: 100%;
 }
 
 :host ::ng-deep .attraction-card .p-card-body,
 :host ::ng-deep .attraction-card .p-card-content {
   position: static;
+  height: 100%;
 }
 
 .favorite-ribbon {
@@ -92,15 +95,21 @@
   align-items: stretch;
   justify-content: space-between;
   gap: 1rem;
+  min-height: 10rem;
+  height: 100%;
 }
 
 .card-main {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .card-header {
   padding-right: 2rem;
+  flex: 1 1 auto;
 }
 
 .attraction-name {
@@ -108,15 +117,29 @@
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
+  min-height: calc(1rem * 1.3 * 3);
   color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .card-meta {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  align-content: flex-start;
   gap: 0.4rem;
-  margin-top: 0.65rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
+}
+
+.card-layout > .wait-block,
+.hours-block,
+.show-times-block {
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .park-chip {
@@ -290,6 +313,8 @@
   padding: 0;
   display: grid;
   gap: 0.15rem;
+  max-height: 4.5rem;
+  overflow: hidden;
 
   li {
     font-size: 0.82rem;

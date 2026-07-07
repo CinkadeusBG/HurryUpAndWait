@@ -1,43 +1,60 @@
-/** Maps Open-Meteo WMO weather codes to compact badge labels and PrimeIcons. */
+export type WeatherIconVariant =
+  | 'clear-day'
+  | 'clear-night'
+  | 'partly-cloudy-day'
+  | 'partly-cloudy-night'
+  | 'cloudy'
+  | 'fog'
+  | 'rain'
+  | 'snow'
+  | 'thunder';
+
+/** Maps Open-Meteo WMO weather codes to accessible labels and icon variants. */
 export function mapWeatherCode(
   code: number,
   isDay: boolean
-): { label: string; iconClass: string } {
+): { label: string; iconVariant: WeatherIconVariant } {
   if (code === 0) {
-    return { label: 'Clear', iconClass: isDay ? 'pi pi-sun' : 'pi pi-moon' };
+    return { label: 'Clear', iconVariant: isDay ? 'clear-day' : 'clear-night' };
   }
   if (code === 1) {
-    return { label: 'Mostly clear', iconClass: isDay ? 'pi pi-sun' : 'pi pi-moon' };
+    return {
+      label: 'Mostly clear',
+      iconVariant: isDay ? 'clear-day' : 'clear-night',
+    };
   }
   if (code === 2) {
-    return { label: 'Partly cloudy', iconClass: 'pi pi-cloud' };
+    return {
+      label: 'Partly cloudy',
+      iconVariant: isDay ? 'partly-cloudy-day' : 'partly-cloudy-night',
+    };
   }
   if (code === 3) {
-    return { label: 'Overcast', iconClass: 'pi pi-cloud' };
+    return { label: 'Overcast', iconVariant: 'cloudy' };
   }
   if (code === 45 || code === 48) {
-    return { label: 'Foggy', iconClass: 'pi pi-cloud' };
+    return { label: 'Foggy', iconVariant: 'fog' };
   }
   if (code >= 51 && code <= 57) {
-    return { label: 'Drizzle', iconClass: 'pi pi-cloud' };
+    return { label: 'Drizzle', iconVariant: 'rain' };
   }
   if (code >= 61 && code <= 67) {
-    return { label: 'Rain', iconClass: 'pi pi-cloud' };
+    return { label: 'Rain', iconVariant: 'rain' };
   }
   if (code >= 71 && code <= 77) {
-    return { label: 'Snow', iconClass: 'pi pi-cloud' };
+    return { label: 'Snow', iconVariant: 'snow' };
   }
   if (code >= 80 && code <= 82) {
-    return { label: 'Showers', iconClass: 'pi pi-cloud' };
+    return { label: 'Showers', iconVariant: 'rain' };
   }
   if (code === 85 || code === 86) {
-    return { label: 'Snow showers', iconClass: 'pi pi-cloud' };
+    return { label: 'Snow showers', iconVariant: 'snow' };
   }
   if (code >= 95 && code <= 99) {
-    return { label: 'Thunderstorms', iconClass: 'pi pi-bolt' };
+    return { label: 'Thunderstorms', iconVariant: 'thunder' };
   }
 
-  return { label: 'Current conditions', iconClass: 'pi pi-cloud' };
+  return { label: 'Current conditions', iconVariant: 'cloudy' };
 }
 
 export function formatTemperatureF(value: number): number {

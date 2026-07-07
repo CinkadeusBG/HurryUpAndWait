@@ -1,10 +1,11 @@
 import { ResortId } from '../constants/park.constants';
+import { WeatherIconVariant } from '../utils/weather.utils';
 
 export interface WeatherSnapshot {
   resort: ResortId;
   temperatureF: number;
   label: string;
-  iconClass: string;
+  iconVariant: WeatherIconVariant;
   isDay: boolean;
   observedAt: Date;
 }

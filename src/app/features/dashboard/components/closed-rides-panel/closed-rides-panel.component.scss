@@ -6,6 +6,7 @@
 .closed-grid {
   display: grid;
   gap: 0.75rem;
+  align-items: stretch;
 }
 
 @media (min-width: 768px) {
