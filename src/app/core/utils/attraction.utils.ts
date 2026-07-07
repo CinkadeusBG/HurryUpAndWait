@@ -80,6 +80,27 @@ export function isPerformanceShow(item: ExperienceTimingSource): boolean {
   return isShowEntity(item.entityType) && !isContinuousExperience(item);
 }
 
+export function getEntityTypeIcon(
+  entityType: string,
+  item?: ExperienceTimingSource & { name?: string }
+): string {
+  if (item && isContinuousExperience(item)) {
+    if (item.name && /^Meet\b/i.test(item.name)) {
+      return 'pi pi-users';
+    }
+    return 'pi pi-compass';
+  }
+
+  if (entityType === 'ATTRACTION') {
+    return 'pi pi-bolt';
+  }
+  if (entityType === 'SHOW') {
+    return 'pi pi-video';
+  }
+
+  return 'pi pi-map-marker';
+}
+
 export function formatEntityTypeLabel(
   entityType: string,
   item?: ExperienceTimingSource & { name?: string }
@@ -545,15 +566,37 @@ export function formatParkTimezoneAbbr(timezone: string, now = Date.now()): stri
   return parts.find((part) => part.type === 'timeZoneName')?.value ?? timezone;
 }
 
-/** Compact time labels for cards (e.g. "9:00a", "10:30p"). */
-export function formatShowTime(iso: string): string {
-  const date = new Date(iso);
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-  const period = hours >= 12 ? 'p' : 'a';
-  hours = hours % 12 || 12;
+/** Calendar date (YYYY-MM-DD) in a park timezone — for matching schedule rows. */
+export function formatParkDateKey(
+  timezone: string,
+  now = Date.now()
+): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(now));
+}
 
-  return `${hours}:${minutes.toString().padStart(2, '0')}${period}`;
+/** Compact time labels in park local time (e.g. "9:00a", "10:30p"). */
+export function formatShowTime(
+  iso: string,
+  timezone = 'America/New_York'
+): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).formatToParts(new Date(iso));
+
+  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? 12);
+  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? 0);
+  const dayPeriod = parts.find((part) => part.type === 'dayPeriod')?.value ?? 'AM';
+  const period = dayPeriod.toUpperCase().startsWith('P') ? 'p' : 'a';
+
+  return `${hour}:${minute.toString().padStart(2, '0')}${period}`;
 }
 
 export const SHOW_TIME_PREVIEW_LIMIT = 5;

@@ -1,9 +1,11 @@
 .filter-toolbar {
   position: relative;
   z-index: 1;
-  padding: 0.85rem 1rem;
+  margin: 0.65rem 1rem 0;
+  padding: 0.9rem 1rem;
   display: grid;
   gap: 0.75rem;
+  border-radius: var(--radius-lg);
 }
 
 .search-field {
@@ -12,13 +14,35 @@
   input {
     width: 100%;
     min-height: 44px;
+    padding-left: 2.35rem;
+    font-weight: 500;
   }
+}
+
+:host ::ng-deep .search-field .p-input-icon {
+  color: var(--accent-primary);
+  left: 0.95rem;
 }
 
 .filter-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+:host ::ng-deep .filter-dropdown {
+  width: 100%;
+
+  .p-dropdown {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 0.75rem;
+  }
+
+  .p-dropdown-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
 }
 
 @media (max-width: 768px) {

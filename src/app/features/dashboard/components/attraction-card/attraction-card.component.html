@@ -12,6 +12,9 @@
   <div class="card-layout">
     <div class="card-main">
       <div class="card-header">
+        <div class="entity-badge" aria-hidden="true">
+          <i [class]="entityTypeIcon"></i>
+        </div>
         <h3 class="attraction-name">{{ attraction.name }}</h3>
       </div>
 
@@ -30,7 +33,10 @@
         @if (showAttractionType) {
           <span class="meta-chip">{{ attractionTypeLabel }}</span>
         }
-        <span class="meta-chip type-chip">{{ entityTypeLabel }}</span>
+        <span class="meta-chip type-chip">
+          <i [class]="entityTypeIcon" aria-hidden="true"></i>
+          {{ entityTypeLabel }}
+        </span>
       </div>
     </div>
 

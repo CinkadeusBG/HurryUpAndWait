@@ -9,6 +9,8 @@ export interface ParkConfig {
   name: string;
   shortName: string;
   resort: ResortId;
+  /** Decorative park chip emoji (hidden from screen readers; label is park name). */
+  emoji: string;
 }
 
 export const WDW_DESTINATION_ID = 'e957da41-3552-4cf6-b636-5babc5cbc4e5';
@@ -48,42 +50,49 @@ export const PARKS: readonly ParkConfig[] = [
     name: 'Magic Kingdom Park',
     shortName: 'Magic Kingdom',
     resort: 'wdw',
+    emoji: '🏰',
   },
   {
     id: '47f90d2c-e191-4239-a466-5892ef59a88b',
     name: 'EPCOT',
     shortName: 'EPCOT',
     resort: 'wdw',
+    emoji: '🌍',
   },
   {
     id: '288747d1-8b4f-4a64-867e-ea7c9b27bad8',
     name: "Disney's Hollywood Studios",
     shortName: 'Hollywood Studios',
     resort: 'wdw',
+    emoji: '🏨',
   },
   {
     id: '1c84a229-8862-4648-9c71-378ddd2c7693',
     name: "Disney's Animal Kingdom Theme Park",
     shortName: 'Animal Kingdom',
     resort: 'wdw',
+    emoji: '🌳',
   },
   {
     id: 'eb3f4560-2383-4a36-9152-6b3e5ed6bc57',
     name: 'Universal Studios Florida',
     shortName: 'Studios',
     resort: 'universal',
+    emoji: '🎬',
   },
   {
     id: '267615cc-8943-4c2a-ae2c-5da728ca591f',
     name: 'Universal Islands of Adventure',
     shortName: 'Islands of Adventure',
     resort: 'universal',
+    emoji: '🏝️',
   },
   {
     id: '12dbb85b-265f-44e6-bccf-f1faa17211fc',
     name: 'Universal Epic Universe',
     shortName: 'Epic Universe',
     resort: 'universal',
+    emoji: '🧭',
   },
 ] as const;
 
@@ -99,18 +108,29 @@ export function getParkById(parkId: string): ParkConfig | undefined {
 
 export const RESORT_THEMES: Record<
   ResortId,
-  { label: string; accent: string; accentMuted: string; gradient: string }
+  {
+    label: string;
+    accent: string;
+    accentMuted: string;
+    accentGlow: string;
+    gradient: string;
+    mesh: string;
+  }
 > = {
   wdw: {
     label: 'Walt Disney World',
-    accent: '#1e6fd9',
-    accentMuted: '#c9a227',
-    gradient: 'linear-gradient(135deg, #0d3b7a 0%, #1e6fd9 50%, #c9a227 100%)',
+    accent: '#3b9eff',
+    accentMuted: '#f5c842',
+    accentGlow: 'rgba(59, 158, 255, 0.45)',
+    gradient: 'linear-gradient(135deg, #0d3b7a 0%, #1e6fd9 45%, #f5c842 100%)',
+    mesh: 'radial-gradient(circle at 15% 10%, rgba(59, 158, 255, 0.22), transparent 42%), radial-gradient(circle at 85% 20%, rgba(245, 200, 66, 0.14), transparent 38%)',
   },
   universal: {
     label: 'Universal Orlando',
-    accent: '#7b2cbf',
-    accentMuted: '#e85d04',
-    gradient: 'linear-gradient(135deg, #3c096c 0%, #7b2cbf 50%, #e85d04 100%)',
+    accent: '#b44dff',
+    accentMuted: '#ff6b1a',
+    accentGlow: 'rgba(180, 77, 255, 0.45)',
+    gradient: 'linear-gradient(135deg, #3c096c 0%, #9d4edd 45%, #ff6b1a 100%)',
+    mesh: 'radial-gradient(circle at 12% 8%, rgba(180, 77, 255, 0.24), transparent 40%), radial-gradient(circle at 88% 18%, rgba(255, 107, 26, 0.16), transparent 36%)',
   },
 };

@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { ParkIconComponent } from '../park-icon/park-icon.component';
 import { BehaviorSubject, filter, interval, switchMap } from 'rxjs';
 import {
   APP_NAME,
@@ -21,7 +22,6 @@ import {
   ResortId,
 } from '../../../../core/constants/park.constants';
 import { ResortWeatherState } from '../../../../core/models/weather.models';
-import { ClockService } from '../../../../core/services/clock.service';
 import { WeatherService } from '../../../../core/services/weather.service';
 import {
   formatParkClockTime,
@@ -32,18 +32,18 @@ import {
 @Component({
   selector: 'app-park-header',
   standalone: true,
-  imports: [FormsModule, SelectButtonModule],
+  imports: [FormsModule, SelectButtonModule, ParkIconComponent],
   templateUrl: './park-header.component.html',
   styleUrl: './park-header.component.scss',
 })
 export class ParkHeaderComponent implements OnInit, OnChanges {
-  private readonly clock = inject(ClockService);
   private readonly weatherService = inject(WeatherService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly resort$ = new BehaviorSubject<ResortId | null>(null);
   private readonly refreshRingRadius = 9;
-  private uiTick = 0;
-  private progressTick = 0;
+  parkLocalTime = '';
+  refreshRingOffset = 2 * Math.PI * 9;
+  refreshAriaLabelText = 'Waiting for first data refresh';
 
   weatherState: ResortWeatherState = {
     loading: true,
@@ -72,16 +72,10 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   ];
 
   constructor() {
-    this.clock.tick$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((tick) => {
-        this.uiTick = tick;
-      });
-
     interval(1000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.progressTick = Date.now();
+        this.syncTimeBoundValues();
       });
 
     this.resort$
@@ -97,11 +91,17 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.resort$.next(this.selectedResort);
+    this.syncTimeBoundValues();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedResort']) {
       this.resort$.next(this.selectedResort);
+    }
+
+    if (changes['lastRefreshed'] || changes['parkTimezone']) {
+      // Defer so parent async updates don't trip dev-mode change detection.
+      setTimeout(() => this.syncTimeBoundValues());
     }
   }
 
@@ -109,13 +109,8 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
     return RESORT_THEMES[this.selectedResort];
   }
 
-  parkLocalTime(): string {
-    void this.uiTick;
-    return formatParkClockTime(this.parkTimezone);
-  }
-
   parkTimeAriaLabel(): string {
-    return `Local park time ${this.parkLocalTime()} ${formatParkTimezoneAbbr(this.parkTimezone)}`;
+    return `Local park time ${this.parkLocalTime} ${formatParkTimezoneAbbr(this.parkTimezone)}`;
   }
 
   weatherAriaLabel(): string {
@@ -127,22 +122,23 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
     return `${weather.temperatureF} degrees Fahrenheit, ${weather.label} at ${RESORT_THEMES[weather.resort].label}`;
   }
 
-  refreshProgress(): number {
-    void this.progressTick;
+  private syncTimeBoundValues(): void {
+    this.parkLocalTime = formatParkClockTime(this.parkTimezone);
+    this.refreshRingOffset = this.computeRefreshRingOffset();
+    this.refreshAriaLabelText = this.buildRefreshAriaLabel();
+  }
+
+  private computeRefreshRingOffset(): number {
     if (!this.lastRefreshed) {
-      return 0;
+      return this.refreshRingCircumference;
     }
 
     const elapsed = Date.now() - this.lastRefreshed.getTime();
-    return Math.min(1, Math.max(0, elapsed / REFRESH_INTERVAL_MS));
+    const progress = Math.min(1, Math.max(0, elapsed / REFRESH_INTERVAL_MS));
+    return this.refreshRingCircumference * (1 - progress);
   }
 
-  refreshRingOffset(): number {
-    return this.refreshRingCircumference * (1 - this.refreshProgress());
-  }
-
-  refreshAriaLabel(): string {
-    void this.uiTick;
+  private buildRefreshAriaLabel(): string {
     if (!this.lastRefreshed) {
       return 'Waiting for first data refresh';
     }

@@ -3,6 +3,14 @@
   height: 100%;
 }
 
+:host:hover ::ng-deep .attraction-card.p-card {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent-primary) 35%, rgba(255, 255, 255, 0.1));
+  box-shadow:
+    var(--shadow-card),
+    0 0 24px color-mix(in srgb, var(--accent-glow) 28%, transparent);
+}
+
 :host.status-down ::ng-deep .attraction-card.p-card {
   border-color: rgba(248, 113, 113, 0.5);
   background: linear-gradient(
@@ -10,25 +18,58 @@
     rgba(127, 29, 29, 0.22) 0%,
     rgba(255, 255, 255, 0.02) 55%
   );
-  box-shadow:
-    inset 4px 0 0 #f87171,
-    0 10px 30px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+
+  &::before {
+    background: #f87171;
+  }
 }
 
 :host.status-closed ::ng-deep .attraction-card.p-card {
   border-color: rgba(148, 163, 184, 0.35);
   opacity: 0.82;
+
+  &::before {
+    background: rgba(148, 163, 184, 0.55);
+  }
 }
 
 :host.status-refurbishment ::ng-deep .attraction-card.p-card {
   border-color: rgba(251, 191, 36, 0.45);
-  box-shadow: inset 4px 0 0 #fbbf24;
+
+  &::before {
+    background: #fbbf24;
+  }
 }
 
 :host ::ng-deep .attraction-card.p-card {
   position: relative;
   overflow: hidden;
   height: 100%;
+  border-radius: var(--radius-lg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      125deg,
+      color-mix(in srgb, var(--accent-primary) 6%, transparent) 0%,
+      transparent 42%
+    );
+    pointer-events: none;
+  }
 }
 
 :host ::ng-deep .attraction-card .p-card-body,
@@ -71,11 +112,14 @@
     font-size: 0.85rem;
     color: var(--text-muted);
     z-index: 1;
-    transition: color 0.15s ease, transform 0.15s ease;
+    transition:
+      color 0.15s ease,
+      transform 0.15s ease,
+      filter 0.15s ease;
   }
 
   &:hover i {
-    transform: scale(1.1);
+    transform: scale(1.12);
   }
 
   &.is-favorite {
@@ -86,6 +130,7 @@
 
     i {
       color: #fff7d6;
+      filter: drop-shadow(0 0 6px rgba(245, 200, 66, 0.65));
     }
   }
 }
@@ -108,14 +153,35 @@
 }
 
 .card-header {
+  position: relative;
   padding-right: 2rem;
+  padding-left: 0.15rem;
   flex: 1 1 auto;
+}
+
+.entity-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin-bottom: 0.45rem;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent-glow) 25%, transparent);
+
+  i {
+    font-size: 0.82rem;
+    color: var(--accent-primary);
+  }
 }
 
 .attraction-name {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.3;
   min-height: calc(1rem * 1.3 * 3);
   color: var(--text-primary);
@@ -153,13 +219,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.3rem;
   line-height: 1;
   min-height: 1.625rem;
   font-size: 0.75rem;
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-pill);
   padding: 0.25rem 0.6rem;
+
+  i {
+    font-size: 0.68rem;
+    color: var(--accent-primary);
+  }
+}
+
+.type-chip {
+  color: color-mix(in srgb, var(--accent-primary) 80%, white);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  font-weight: 600;
 }
 
 .status-chip {
@@ -205,16 +285,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 4.5rem;
-  padding: 0.5rem 0.75rem;
+  min-width: 4.75rem;
+  padding: 0.55rem 0.8rem;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
 }
 
 .wait-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
   line-height: 1;
   transition: opacity 0.16s ease;
 
@@ -224,35 +306,63 @@
 }
 
 .wait-unit {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.8;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+  font-weight: 700;
+}
+
+.wait-low {
+  background: radial-gradient(circle at 50% 35%, rgba(74, 222, 128, 0.18), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.14);
 }
 
 .wait-low .wait-value {
   color: #4ade80;
+  text-shadow: 0 0 16px rgba(74, 222, 128, 0.45);
+}
+
+.wait-medium {
+  background: radial-gradient(circle at 50% 35%, rgba(250, 204, 21, 0.16), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.12);
 }
 
 .wait-medium .wait-value {
   color: #facc15;
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.35);
+}
+
+.wait-high {
+  background: radial-gradient(circle at 50% 35%, rgba(251, 146, 60, 0.16), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 18px rgba(251, 146, 60, 0.14);
 }
 
 .wait-high .wait-value {
   color: #fb923c;
+  text-shadow: 0 0 16px rgba(251, 146, 60, 0.35);
+}
+
+.wait-extreme {
+  background: radial-gradient(circle at 50% 35%, rgba(248, 113, 113, 0.18), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.16);
+  animation: pulse-glow 2.4s ease-in-out infinite;
 }
 
 .wait-extreme .wait-value {
   color: #f87171;
+  text-shadow: 0 0 18px rgba(248, 113, 113, 0.45);
 }
 
 .wait-walkon .wait-value {
   font-size: 0.95rem;
   color: #86efac;
+  text-shadow: 0 0 12px rgba(134, 239, 172, 0.35);
 }
 
 .wait-muted .wait-value {
   color: var(--text-muted);
+  text-shadow: none;
 }
 
 .hours-block,
@@ -265,7 +375,8 @@
   max-width: 7rem;
   padding: 0.5rem 0.75rem;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: right;
 }
 
@@ -348,6 +459,10 @@
 @media (prefers-reduced-motion: reduce) {
   .wait-value {
     transition: none;
+  }
+
+  :host:hover ::ng-deep .attraction-card.p-card {
+    transform: none;
   }
 }
 

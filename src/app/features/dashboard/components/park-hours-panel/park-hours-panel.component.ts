@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { ResortId } from '../../../../core/constants/park.constants';
 import { ScheduleEntry } from '../../../../core/models/theme-parks.models';
 import {
+  formatParkDateKey,
   formatScheduleEntryLabel,
   formatScheduleEntrySubtitle,
   formatShowTime,
@@ -16,9 +17,10 @@ import {
 export class ParkHoursPanelComponent {
   @Input({ required: true }) schedule: ScheduleEntry[] = [];
   @Input() resort: ResortId = 'wdw';
+  @Input() parkTimezone = 'America/New_York';
 
   get todayEntries(): ScheduleEntry[] {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = formatParkDateKey(this.parkTimezone);
     return this.schedule.filter((entry) => entry.date === today);
   }
 
@@ -26,7 +28,7 @@ export class ParkHoursPanelComponent {
     if (!iso) {
       return '—';
     }
-    return formatShowTime(iso);
+    return formatShowTime(iso, this.parkTimezone);
   }
 
   entryLabel(entry: ScheduleEntry): string {

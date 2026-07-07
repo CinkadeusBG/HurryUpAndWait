@@ -107,8 +107,8 @@ export class DashboardComponent implements OnInit {
   private allAttractions: AttractionViewModel[] = [];
 
   readonly bottomNav: { id: BottomNavTab; label: string; icon: string }[] = [
-    { id: 'waits', label: 'Waits', icon: 'pi pi-clock' },
-    { id: 'hours', label: 'Hours', icon: 'pi pi-calendar' },
+    { id: 'waits', label: 'Waits', icon: 'pi pi-stopwatch' },
+    { id: 'hours', label: 'Hours', icon: 'pi pi-calendar-clock' },
     { id: 'shows', label: 'Shows', icon: 'pi pi-video' },
     { id: 'stats', label: 'Stats', icon: 'pi pi-chart-bar' },
   ];
@@ -326,7 +326,9 @@ export class DashboardComponent implements OnInit {
     const root = this.host.nativeElement;
     root.style.setProperty('--accent-primary', theme.accent);
     root.style.setProperty('--accent-gold', theme.accentMuted);
+    root.style.setProperty('--accent-glow', theme.accentGlow);
     root.style.setProperty('--resort-gradient', theme.gradient);
+    root.style.setProperty('--resort-mesh', theme.mesh);
   }
 
   private loadResort(): ResortId {

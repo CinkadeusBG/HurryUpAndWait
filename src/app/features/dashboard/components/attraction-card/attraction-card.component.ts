@@ -17,6 +17,7 @@ import {
   SHOW_TIME_PREVIEW_LIMIT,
   formatAttractionTypeLabel,
   formatEntityTypeLabel,
+  getEntityTypeIcon,
   formatWaitTime,
   getRelevantOperatingHoursLabel,
   getRelevantShowTimes,
@@ -110,6 +111,10 @@ export class AttractionCardComponent implements OnInit, OnChanges {
 
   get entityTypeLabel(): string {
     return formatEntityTypeLabel(this.attraction.entityType, this.attraction);
+  }
+
+  get entityTypeIcon(): string {
+    return getEntityTypeIcon(this.attraction.entityType, this.attraction);
   }
 
   get showStatusChip(): boolean {

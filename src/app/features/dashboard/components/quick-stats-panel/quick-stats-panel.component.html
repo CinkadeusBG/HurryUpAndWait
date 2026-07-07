@@ -1,9 +1,12 @@
 <section class="panel glass-panel">
-  <h2 class="panel-title">Quick Stats</h2>
+  <h2 class="panel-title"><i class="pi pi-chart-bar" aria-hidden="true"></i>Quick Stats</h2>
 
   <div class="stats-grid">
     @for (stat of stats; track stat.label) {
-      <article class="stat-card">
+      <article class="stat-card" [class]="stat.tone">
+        <div class="stat-icon" aria-hidden="true">
+          <i [class]="stat.icon"></i>
+        </div>
         <p class="stat-label">{{ stat.label }}</p>
         <p class="stat-value">{{ stat.value }}</p>
         @if (stat.hint) {

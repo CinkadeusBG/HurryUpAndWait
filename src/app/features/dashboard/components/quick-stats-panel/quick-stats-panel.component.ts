@@ -5,6 +5,8 @@ interface QuickStat {
   label: string;
   value: string;
   hint?: string;
+  icon: string;
+  tone: string;
 }
 
 @Component({
@@ -37,31 +39,45 @@ export class QuickStatsPanelComponent {
       {
         label: 'Open attractions',
         value: `${operatingRides.length}`,
+        icon: 'pi pi-check-circle',
+        tone: 'tone-open',
       },
       {
         label: 'Down rides',
         value: `${rides.length - operatingRides.length}`,
+        icon: 'pi pi-exclamation-triangle',
+        tone: 'tone-down',
       },
       {
         label: 'Closed / unavailable',
         value: `${this.closedCount}`,
+        icon: 'pi pi-lock',
+        tone: 'tone-closed',
       },
       {
         label: 'Average wait',
         value: avgWait !== null ? `${avgWait} min` : '—',
+        icon: 'pi pi-chart-line',
+        tone: 'tone-wait',
       },
       {
         label: 'Shortest wait',
         value: shortest !== null ? `${shortest} min` : '—',
+        icon: 'pi pi-arrow-down',
+        tone: 'tone-short',
       },
       {
         label: 'Longest wait',
         value: longest !== null ? `${longest} min` : '—',
+        icon: 'pi pi-arrow-up',
+        tone: 'tone-long',
       },
       {
         label: 'Under 15 min',
         value: `${under15}`,
         hint: 'rides with posted waits',
+        icon: 'pi pi-bolt',
+        tone: 'tone-fast',
       },
     ];
   }
