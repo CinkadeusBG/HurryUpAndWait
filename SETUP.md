@@ -149,7 +149,7 @@ src/app/
         └── show-times-panel/
 ```
 
-## Historical wait data (GitHub Actions + Chart.js)
+## Historical wait data (Chart.js)
 
 ### Dependencies
 
@@ -167,18 +167,17 @@ npm install chart.js@4
 }
 ```
 
-### Collector setup
+### Historical JSON
 
-1. Add `scripts/collect_wait_times.py`, `scripts/parks_config.json`, and `.github/workflows/collect-wait-times.yml`.
-2. In GitHub **Settings → Actions → General**, set workflow permissions to **Read and write** so the collector can commit JSON snapshots.
-3. Configure external cron per **[docs/EXTERNAL_CRON.md](./docs/EXTERNAL_CRON.md)** (cron-job.org → GitHub `workflow_dispatch` API every 5 min).
-4. Data lands in `data/parks/{parkId}/{YYYY-MM-DD}.json`; `data/manifest.json` lists available dates per park.
+Data files live in `data/parks/{parkId}/{YYYY-MM-DD}.json` with a root `data/manifest.json`. The app fetches them from jsDelivr at build/runtime — see `HISTORICAL_DATA_CDN_BASE_URL` in `park.constants.ts`.
+
+Automated collection is currently **paused** while a new storage approach is planned. Existing JSON in the repo continues to power charts until replaced. The `scripts/collect_wait_times.py` script remains for manual runs if needed.
 
 ### Frontend pieces
 
 | Path | Purpose |
 |------|---------|
-| `src/app/core/services/historical-data.service.ts` | `fetch()` manifest + daily JSON via site base href |
+| `src/app/core/services/historical-data.service.ts` | `fetch()` manifest + daily JSON via jsDelivr (localhost uses bundled `/data/`) |
 | `src/app/core/utils/chart.utils.ts` | Chart.js config + hourly/dow aggregations |
 | `src/app/shared/components/wait-trend-chart/` | Reusable line chart (card sparkline + detail page) |
 | `src/app/features/ride-detail/` | Detail route `/ride/:parkId/:attractionId` |

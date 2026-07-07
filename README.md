@@ -6,7 +6,7 @@ Live data comes from [ThemeParks.wiki](https://themeparks.wiki). Weather uses [O
 
 ## Features
 
-- **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (background collector via GitHub Actions)
+- **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (static JSON in `data/`)
 - **Live wait times** — color-coded cards with smooth fade updates on refresh
 - **Park hours** — today's schedule in park local time (Early Theme Park Entry, Early Park Admission, etc.)
 - **Show times** — upcoming performances with expandable lists on each card
@@ -59,14 +59,10 @@ npm test         # unit tests (Karma)
 
 ```
 .github/workflows/
-  collect-wait-times.yml   # Cron collector (every 5 min, park hours only)
   deploy-pages.yml         # Build + deploy static site to GitHub Pages
 data/
-  manifest.json            # Available dates per park (updated by collector)
+  manifest.json            # Available dates per park
   parks/{parkId}/{date}.json
-scripts/
-  collect_wait_times.py    # ThemeParks.wiki poller, prune, git commit
-  parks_config.json
 src/app/
   core/
     constants/     # park IDs, resort themes, refresh intervals
@@ -79,30 +75,11 @@ src/app/
   shared/components/wait-trend-chart/
 ```
 
-## Historical data collection
+## Historical data
 
-A Python workflow polls [ThemeParks.wiki](https://themeparks.wiki) every **5 minutes** during Orlando park hours (**8 AM–midnight Eastern**). Snapshots are stored under `data/parks/{parkId}/{YYYY-MM-DD}.json` and pruned after **45 days**.
+Snapshots live under `data/parks/{parkId}/{YYYY-MM-DD}.json`. The app loads them at runtime from **jsDelivr** (`cdn.jsdelivr.net/gh/.../data/`) — no site redeploy needed when `data/` changes on `main`.
 
-| File | Role |
-|------|------|
-| `.github/workflows/collect-wait-times.yml` | Collector job (triggered via API) |
-| `scripts/collect_wait_times.py` | API calls, append, prune, optional `git push` |
-| `scripts/parks_config.json` | Park IDs (mirrors `park.constants.ts`) |
-| `docs/EXTERNAL_CRON.md` | **Set up free external cron** (cron-job.org) |
-
-### Enable the collector on GitHub
-
-1. Push this repo to GitHub (default branch `main`).
-2. **Settings → Actions → General → Workflow permissions** → **Read and write permissions** (required for the collector to commit data).
-3. **Set up external cron** — GitHub's native schedule cron is unreliable here. Follow **[docs/EXTERNAL_CRON.md](./docs/EXTERNAL_CRON.md)** to use [cron-job.org](https://cron-job.org) (free) to POST to the GitHub API every 5 minutes.
-4. Data commits do **not** redeploy the site. The app loads historical JSON from **jsDelivr** (`cdn.jsdelivr.net/gh/.../data/`), so new collector commits appear on the live site within a few minutes automatically.
-
-### Run the collector locally
-
-```bash
-pip install -r scripts/requirements.txt
-python scripts/collect_wait_times.py --force   # --commit to git push
-```
+Automated collection is currently **paused** while a new storage approach is planned. Existing JSON in the repo continues to power charts until replaced.
 
 ## Ride detail charts
 
