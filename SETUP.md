@@ -151,22 +151,100 @@ src/app/
 
 ## Historical wait data (Chart.js + Turso)
 
+### Overview
+
+| Component | Location | Responsibility |
+|-----------|----------|----------------|
+| Angular app | GitHub Pages | Live polling + chart UI |
+| Turso DB | `hurryupandwait-cinkadeus.aws-us-east-1.turso.io` | Persistent snapshot storage |
+| Collector | Docker on \*arr server | Poll ThemeParks.wiki → insert rows |
+
+There is **no** GitHub Actions data-collection workflow and **no** `data/` JSON in the repo anymore.
+
 ### Dependencies
 
 ```bash
 npm install chart.js@4
 ```
 
-### Historical data (Turso)
+### Turso schema
 
-Snapshots are stored in Turso (`wait_snapshots`, `collection_metadata`). Connection settings live in `park.constants.ts` (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`).
+```sql
+CREATE TABLE collection_metadata (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE wait_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  park_id TEXT NOT NULL,
+  park_name TEXT NOT NULL,
+  local_date TEXT NOT NULL,
+  collected_at TEXT NOT NULL,
+  attraction_id TEXT NOT NULL,
+  attraction_name TEXT NOT NULL,
+  status TEXT NOT NULL,
+  wait_time INTEGER,
+  entity_type TEXT NOT NULL DEFAULT 'ATTRACTION',
+  UNIQUE (park_id, collected_at, attraction_id)
+);
+
+CREATE INDEX idx_wait_snapshots_park_attraction
+  ON wait_snapshots (park_id, attraction_id, collected_at);
+
+CREATE INDEX idx_wait_snapshots_local_date
+  ON wait_snapshots (local_date);
+```
+
+**`collection_metadata` rows:**
+
+- `last_updated` — UTC ISO timestamp of the latest collector run
+- `retention_days` — days of history to keep (currently `45`)
+
+**Uniqueness:** one row per `(park_id, collected_at, attraction_id)` prevents duplicate inserts when a collection round is retried.
+
+### Collector (Docker on \*arr server)
+
+The wait-time collector runs outside this repo as a **long-lived Docker service on the homelab \*arr server**.
+
+Each cycle:
+
+1. Check local park time is within operating hours (8 AM–midnight `America/New_York`)
+2. For each park in `PARKS`, call ThemeParks.wiki `GET /entity/{parkId}/live`
+3. `INSERT` attraction snapshots into `wait_snapshots` (standby `waitTime` may be `NULL`)
+4. Set `collection_metadata.last_updated`
+5. Delete rows older than `retention_days`
+6. Sleep ~5 minutes and repeat
+
+**Container environment (typical):**
+
+```bash
+TURSO_DATABASE_URL=libsql://hurryupandwait-cinkadeus.aws-us-east-1.turso.io
+TURSO_AUTH_TOKEN=<read-write token>
+```
+
+Manage the container on the \*arr host (`docker compose up -d`, logs, image updates). The compose file and collector image are maintained on that server, not in this Angular repo.
+
+### Frontend (Turso reads)
+
+Connection settings: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` in `park.constants.ts`.
 
 | Path | Purpose |
 |------|---------|
-| `src/app/core/services/turso-client.service.ts` | Turso HTTP pipeline client |
-| `src/app/core/services/historical-data.service.ts` | Manifest, park history, attraction trends via SQL |
+| `src/app/core/services/turso-client.service.ts` | Turso HTTP pipeline client (`POST /v2/pipeline`) |
+| `src/app/core/services/historical-data.service.ts` | SQL for manifest, park history, sparklines, ride detail |
 
-### Frontend pieces
+**Queries used by the app:**
+
+| Method | SQL target |
+|--------|------------|
+| Manifest | `collection_metadata` + `GROUP BY park_id, local_date` on `wait_snapshots` |
+| Ride detail | `wait_snapshots` filtered by `park_id` + `attraction_id` |
+| Card sparkline | today's rows for one attraction, `collected_at >=` 6-hour cutoff |
+
+Turso pipeline args must be typed objects (`{ "type": "text", "value": "..." }`), not raw strings.
+
+### Chart.js pieces
 
 | Path | Purpose |
 |------|---------|
@@ -178,7 +256,7 @@ Register the route in `app.routes.ts` and link ride titles from `attraction-card
 
 ### GitHub Pages deploy
 
-The existing `deploy-pages.yml` workflow builds with `--base-href /{repo-name}/`. Historical charts query Turso directly from the browser — no backend deploy required when new snapshots are collected.
+`deploy-pages.yml` builds with `--base-href /{repo-name}/` and deploys on every push to `main`. Historical charts read Turso from the browser — no redeploy needed when the Docker collector adds snapshots.
 
 ## Build for production
 
