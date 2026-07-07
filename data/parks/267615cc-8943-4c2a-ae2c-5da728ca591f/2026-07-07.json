@@ -2291,7 +2291,183 @@
       "status": "OPERATING",
       "waitTime": 45,
       "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "f6dba1c6-6f5a-4743-8470-f741ecac555d",
+      "name": "Camp Jurassic™",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "578bbd12-1975-4ec3-9879-ea641c780342",
+      "name": "Hagrid's Magical Creatures Motorbike Adventure™",
+      "status": "OPERATING",
+      "waitTime": 60,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "db5b2165-15c2-4e51-8bd1-611e9c351866",
+      "name": "Jurassic Park River Adventure",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "3daca54f-50f0-44e9-a993-d706ce7520a0",
+      "name": "Pteranodon Flyers",
+      "status": "OPERATING",
+      "waitTime": 50,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "b1e94e05-b360-4e3f-be8a-2a3744a97f97",
+      "name": "One Fish, Two Fish, Red Fish, Blue Fish™",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "22dcd29e-d76a-45cd-b44a-dd6350dc3f8a",
+      "name": "Jurassic Park Discovery Center™",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "391dea99-303d-42a1-aa86-a846d1c1fa1f",
+      "name": "If I Ran The Zoo™",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "3cb52134-e9d6-4212-83c8-3ce1321dcb05",
+      "name": "Caro-Seuss-el™",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "8babd50d-c570-423b-bd53-d040cad3e087",
+      "name": "Me Ship, The Olive®",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "b4445a1c-4d5c-4fca-a04a-f8867f1b6619",
+      "name": "Popeye & Bluto's Bilge-Rat Barges®",
+      "status": "DOWN",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "144450b9-4574-46be-abdf-4b1ca8974d9d",
+      "name": "Hogwarts Express™ - Hogsmeade™ Station",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "6be23178-7d00-4884-9e88-76787da1df86",
+      "name": "The Amazing Adventures of Spider-Man®",
+      "status": "OPERATING",
+      "waitTime": 25,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "905d7888-b866-4e74-90d1-07fc6ef6706f",
+      "name": "Dudley Do-Right's Ripsaw Falls®",
+      "status": "OPERATING",
+      "waitTime": 85,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "6af80308-647d-4d8b-bcf6-37517a93bdbc",
+      "name": "Harry Potter and the Forbidden Journey™",
+      "status": "OPERATING",
+      "waitTime": 40,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "2f95b213-daaa-4370-8349-c2cd57be470e",
+      "name": "Doctor Doom's Fearfall®",
+      "status": "OPERATING",
+      "waitTime": 30,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "370ba4d1-f199-4dc2-be6d-6bb09b442891",
+      "name": "Skull Island: Reign of Kong™",
+      "status": "OPERATING",
+      "waitTime": 45,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "61079a31-4165-4fb0-b36f-c01c5971f80a",
+      "name": "Jurassic World VelociCoaster",
+      "status": "OPERATING",
+      "waitTime": 95,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "23b613e0-ae83-455b-9163-231bdbd5c427",
+      "name": "Flight of the Hippogriff™",
+      "status": "OPERATING",
+      "waitTime": 30,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "fa743143-281b-4b5b-b87b-d49fcb006772",
+      "name": "The Incredible Hulk Coaster®",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "2365495a-790b-4a41-831e-65592c8a4359",
+      "name": "The Cat in The Hat™",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "b694d5a5-155e-4796-af7e-5dbdcf3deba4",
+      "name": "Storm Force Accelatron®",
+      "status": "OPERATING",
+      "waitTime": 5,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:05:16Z",
+      "attractionId": "b73e3256-9ee0-439e-9a3b-ffed287e10bb",
+      "name": "The High in the Sky Seuss Trolley Train Ride!™",
+      "status": "OPERATING",
+      "waitTime": 45,
+      "entityType": "ATTRACTION"
     }
   ],
-  "lastCollectedAt": "2026-07-07T18:00:40Z"
+  "lastCollectedAt": "2026-07-07T18:05:16Z"
 }
