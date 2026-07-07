@@ -2,7 +2,7 @@
 # Usage: $env:GITHUB_TOKEN = "github_pat_xxx"; .\scripts\trigger_collector.ps1
 param(
     [string]$Repo = $(if ($env:GITHUB_REPO) { $env:GITHUB_REPO } else { "CinkadeusBG/HurryUpAndWait" }),
-    [string]$Workflow = $(if ($env:GITHUB_WORKFLOW) { $env:GITHUB_WORKFLOW } else { "collect-wait-times.yml" }),
+    [string]$Workflow = $(if ($env:GITHUB_WORKFLOW) { $env:GITHUB_WORKFLOW } else { "308819232" }),
     [string]$Ref = $(if ($env:GITHUB_REF) { $env:GITHUB_REF } else { "main" })
 )
 

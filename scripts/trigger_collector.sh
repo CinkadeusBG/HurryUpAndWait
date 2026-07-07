@@ -4,7 +4,8 @@
 set -euo pipefail
 
 REPO="${GITHUB_REPO:-CinkadeusBG/HurryUpAndWait}"
-WORKFLOW="${GITHUB_WORKFLOW:-collect-wait-times.yml}"
+# Numeric workflow ID is more reliable than filename for third-party HTTP clients.
+WORKFLOW="${GITHUB_WORKFLOW:-308819232}"
 REF="${GITHUB_REF:-main}"
 
 if [[ -z "${GITHUB_TOKEN:-}" ]]; then

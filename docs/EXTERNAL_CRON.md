@@ -35,26 +35,32 @@ Store the token in your password manager. Use it only in the cron service — ne
 | Field | Value |
 |-------|-------|
 | **Title** | HurryUpAndWait collector |
-| **URL** | `https://api.github.com/repos/CinkadeusBG/HurryUpAndWait/actions/workflows/collect-wait-times.yml/dispatches` |
+| **URL** | `https://api.github.com/repos/CinkadeusBG/HurryUpAndWait/actions/workflows/308819232/dispatches` |
 | **Schedule** | Every 5 minutes (or custom: `*/5 * * * *`) |
-| **Request method** | `POST` |
+| **Request method** | **`POST`** (required — GET returns **404**) |
 
-4. **Advanced** → **Headers** (add each line):
+Use the numeric workflow ID (`308819232`) in the URL, not the filename. Both work with
+`gh`, but the ID is more reliable from third-party cron services.
 
-```
-Authorization: Bearer YOUR_TOKEN_HERE
-Accept: application/vnd.github+json
-X-GitHub-Api-Version: 2022-11-28
-```
+4. Open **Advanced** tab:
+   - **Request method:** `POST` (if this stays `GET`, GitHub returns **404 Not Found**)
+   - **Headers** — add three separate headers:
 
-5. **Advanced** → **Request body**:
+| Header name | Header value |
+|-------------|--------------|
+| `Authorization` | `Bearer YOUR_TOKEN_HERE` (literal word `Bearer`, space, then token) |
+| `Accept` | `application/vnd.github+json` |
+| `X-GitHub-Api-Version` | `2022-11-28` |
+
+   - **Request body** (raw JSON):
 
 ```json
 {"ref":"main"}
 ```
 
-6. **Content-Type** for the body: `application/json`
-7. Save and enable the job.
+   - **Content type / MIME type:** `application/json`
+
+5. Save and enable the job.
 
 ### Expected result
 
@@ -74,7 +80,8 @@ curl -X POST \
   -H "Authorization: Bearer TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/repos/CinkadeusBG/HurryUpAndWait/actions/workflows/collect-wait-times.yml/dispatches \
+  -H "Content-Type: application/json" \
+  https://api.github.com/repos/CinkadeusBG/HurryUpAndWait/actions/workflows/308819232/dispatches \
   -d '{"ref":"main"}'
 ```
 
@@ -89,9 +96,10 @@ Helper scripts in `scripts/` (read `GITHUB_TOKEN` from the environment):
 
 | Symptom | Fix |
 |---------|-----|
-| HTTP 401 | Token invalid or expired — regenerate |
+| **HTTP 404** | Almost always **request method is GET, not POST**. Set method to `POST` in cron-job Advanced tab. Also verify token has access to `HurryUpAndWait` (fine-grained PAT must list this repo). |
+| HTTP 401 | Token missing, invalid, or `Authorization` header malformed — use `Bearer YOUR_TOKEN` |
 | HTTP 403 | Token missing **Actions: Read and write** (fine-grained) or `repo` scope (classic) |
-| HTTP 404 | Wrong repo name or workflow filename in the URL |
+| HTTP 422 | Body missing or invalid — must be `{"ref":"main"}` with `Content-Type: application/json` |
 | Run succeeds, no data commit | Outside park hours (normal) — or check collector logs in the Actions run |
 | Run succeeds, no deploy | Confirm `deploy-pages.yml` has the `workflow_run` trigger |
 
