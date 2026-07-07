@@ -579,7 +579,103 @@
       "status": "OPERATING",
       "waitTime": 95,
       "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "07143999-bacd-475f-a00b-8cc476204aff",
+      "name": "Constellation Carousel",
+      "status": "OPERATING",
+      "waitTime": 20,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "281bc9e6-b208-4a70-85d2-0fb749c7658b",
+      "name": "Fyre Drill",
+      "status": "OPERATING",
+      "waitTime": 60,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "0c6a9af8-c006-4849-8475-1a6925e8f7d4",
+      "name": "Bowser Jr. Challenge",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "dbc4f0d8-fdef-4dfc-a1c2-33917f742f40",
+      "name": "Harry Potter and the Battle at the Ministry™",
+      "status": "OPERATING",
+      "waitTime": 150,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "dd8c015d-511f-47d4-b98b-18ce15735588",
+      "name": "Mine-Cart Madness™",
+      "status": "OPERATING",
+      "waitTime": 105,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "76caa8d0-f54b-4601-9d57-a7f1ddc02af4",
+      "name": "Dragon Racer's Rally",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "447033ce-ee1f-4cca-bb12-47d22583ac12",
+      "name": "Stardust Racers",
+      "status": "OPERATING",
+      "waitTime": 25,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "00feb57b-4fcc-48bc-9490-c9af71f30c1c",
+      "name": "Yoshi's Adventure™",
+      "status": "OPERATING",
+      "waitTime": 60,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "eaca831d-bcbb-4a1e-9bf0-6ea97ccc88e0",
+      "name": "Curse of the Werewolf",
+      "status": "OPERATING",
+      "waitTime": 75,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "c6b1b8cf-55ef-416c-b00d-e469993617b0",
+      "name": "Hiccup's Wing Gliders",
+      "status": "OPERATING",
+      "waitTime": 50,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "43df71bf-aa7c-46c0-925c-46f69d8bf23f",
+      "name": "Mario Kart™: Bowser's Challenge",
+      "status": "OPERATING",
+      "waitTime": 85,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:30:36Z",
+      "attractionId": "1fda5e1f-8712-4165-a81d-ad74eef3e8ee",
+      "name": "Monsters Unchained: The Frankenstein Experiment",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
     }
   ],
-  "lastCollectedAt": "2026-07-07T17:25:11Z"
+  "lastCollectedAt": "2026-07-07T17:30:36Z"
 }
