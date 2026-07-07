@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Collector pushes use GITHUB_TOKEN, which does not trigger push workflows.
+  workflow_run:
+    workflows: [Collect Wait Times]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -17,6 +22,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +45,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
