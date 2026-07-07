@@ -167,17 +167,19 @@ npm install chart.js@4
 }
 ```
 
-### Historical JSON
+### Historical data (Turso)
 
-Data files live in `data/parks/{parkId}/{YYYY-MM-DD}.json` with a root `data/manifest.json`. The app fetches them from jsDelivr at build/runtime — see `HISTORICAL_DATA_CDN_BASE_URL` in `park.constants.ts`.
+Snapshots are stored in Turso (`wait_snapshots`, `collection_metadata`). Connection settings live in `park.constants.ts` (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`).
 
-Automated collection is currently **paused** while a new storage approach is planned. Existing JSON in the repo continues to power charts until replaced. The `scripts/collect_wait_times.py` script remains for manual runs if needed.
+| Path | Purpose |
+|------|---------|
+| `src/app/core/services/turso-client.service.ts` | Turso HTTP pipeline client |
+| `src/app/core/services/historical-data.service.ts` | Manifest, park history, attraction trends via SQL |
 
 ### Frontend pieces
 
 | Path | Purpose |
 |------|---------|
-| `src/app/core/services/historical-data.service.ts` | `fetch()` manifest + daily JSON via jsDelivr (localhost uses bundled `/data/`) |
 | `src/app/core/utils/chart.utils.ts` | Chart.js config + hourly/dow aggregations |
 | `src/app/shared/components/wait-trend-chart/` | Reusable line chart (card sparkline + detail page) |
 | `src/app/features/ride-detail/` | Detail route `/ride/:parkId/:attractionId` |
@@ -186,7 +188,7 @@ Register the route in `app.routes.ts` and link ride titles from `attraction-card
 
 ### GitHub Pages deploy
 
-The existing `deploy-pages.yml` workflow builds with `--base-href /{repo-name}/`. Historical files are served from `{base-href}data/...` — no backend required.
+The existing `deploy-pages.yml` workflow builds with `--base-href /{repo-name}/`. Historical charts query Turso directly from the browser — no backend deploy required when new snapshots are collected.
 
 ## Build for production
 
