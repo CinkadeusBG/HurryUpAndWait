@@ -95,7 +95,7 @@ A Python workflow polls [ThemeParks.wiki](https://themeparks.wiki) every **5 min
 1. Push this repo to GitHub (default branch `main`).
 2. **Settings → Actions → General → Workflow permissions** → **Read and write permissions** (required for the collector to commit data).
 3. **Set up external cron** — GitHub's native schedule cron is unreliable here. Follow **[docs/EXTERNAL_CRON.md](./docs/EXTERNAL_CRON.md)** to use [cron-job.org](https://cron-job.org) (free) to POST to the GitHub API every 5 minutes.
-4. Data commits do **not** trigger a full redeploy. `deploy-pages.yml` rebuilds every **15 minutes** (and on code pushes) so charts stay fresh without a build every 5 minutes.
+4. Data commits do **not** redeploy the site. The app loads historical JSON from **jsDelivr** (`cdn.jsdelivr.net/gh/.../data/`), so new collector commits appear on the live site within a few minutes automatically.
 
 ### Run the collector locally
 

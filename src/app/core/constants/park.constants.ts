@@ -18,6 +18,11 @@ export const UNIVERSAL_DESTINATION_ID = '89db5d43-c434-4097-b71f-f6869f495a22';
 
 export const API_BASE_URL = 'https://api.themeparks.wiki/v1';
 export const WEATHER_API_BASE_URL = 'https://api.open-meteo.com/v1';
+
+/** Historical wait-time JSON served from repo via jsDelivr — no site redeploy needed. */
+export const HISTORICAL_DATA_GITHUB_REPO = 'CinkadeusBG/HurryUpAndWait';
+export const HISTORICAL_DATA_BRANCH = 'main';
+export const HISTORICAL_DATA_CDN_BASE_URL = `https://cdn.jsdelivr.net/gh/${HISTORICAL_DATA_GITHUB_REPO}@${HISTORICAL_DATA_BRANCH}/data/`;
 export const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
 export const WEATHER_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 /** Client tick for relative labels and show-time filtering without an API round-trip. */

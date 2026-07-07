@@ -9,6 +9,7 @@ import {
   shareReplay,
   switchMap,
 } from 'rxjs';
+import { HISTORICAL_DATA_CDN_BASE_URL } from '../constants/park.constants';
 import {
   AttractionHistoryBundle,
   DataManifest,
@@ -22,11 +23,23 @@ export class HistoricalDataService {
   private readonly manifestCache = new Map<string, Observable<DataManifest>>();
   private readonly dailyFileCache = new Map<string, Observable<ParkDailyDataFile | null>>();
 
-  /** Resolve static data path relative to the deployed site root (GitHub Pages base href). */
+  /**
+   * Historical JSON is loaded from jsDelivr (GitHub main branch), not the Pages artifact.
+   * Collector commits update charts within minutes — no Angular redeploy required.
+   * Local dev falls back to bundled /data/ when running on localhost.
+   */
   getDataBaseUrl(): string {
-    const base = document.querySelector('base')?.getAttribute('href') ?? '/';
-    const normalized = base.endsWith('/') ? base : `${base}/`;
-    return `${normalized}data/`;
+    if (typeof window !== 'undefined' && this.isLocalDevHost(window.location.hostname)) {
+      const base = document.querySelector('base')?.getAttribute('href') ?? '/';
+      const normalized = base.endsWith('/') ? base : `${base}/`;
+      return `${normalized}data/`;
+    }
+
+    return HISTORICAL_DATA_CDN_BASE_URL;
+  }
+
+  private isLocalDevHost(hostname: string): boolean {
+    return hostname === 'localhost' || hostname === '127.0.0.1';
   }
 
   getManifest(): Observable<DataManifest> {

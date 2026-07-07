@@ -1,16 +1,13 @@
 name: Deploy to GitHub Pages
 
-# Do NOT deploy on every data commit (collector runs every 5 min).
-# - push: code changes only (data/** ignored)
-# - schedule: refresh site with latest data every 15 minutes
-# - workflow_dispatch: manual deploy
+# Deploy only when app code changes. Historical JSON is fetched from jsDelivr at runtime.
 on:
   push:
     branches: [main]
     paths-ignore:
       - 'data/**'
-  schedule:
-    - cron: '*/15 * * * *'
+      - 'scripts/**'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
