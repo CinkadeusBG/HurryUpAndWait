@@ -603,7 +603,127 @@
       "status": "OPERATING",
       "waitTime": 35,
       "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "2122adff-52a3-49ca-9d20-5a6faafc8c77",
+      "name": "Hogwarts™ Express - Last Train",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "625a3cc3-7d7e-468b-96fe-1ec00df7b739",
+      "name": "Race Through New York Starring Jimmy Fallon™",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "91cae293-64f8-48b6-88ec-02dcfcdd1f91",
+      "name": "MEN IN BLACK™ Alien Attack!™",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "f44a531c-09cf-40c4-b2d4-236e8a9285dc",
+      "name": "Hogwarts™ Express - First Train",
+      "status": "CLOSED",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "1e16afdd-15e3-4e4a-b3af-8aeebd7534f8",
+      "name": "E.T. Adventure™",
+      "status": "OPERATING",
+      "waitTime": 20,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "37989fb7-5576-4247-bd6e-e981bc70cca2",
+      "name": "Trolls Trollercoaster",
+      "status": "OPERATING",
+      "waitTime": 15,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "7e70bc9e-7dce-4dd2-8823-57b8d6ec7570",
+      "name": "The Simpsons Ride™",
+      "status": "OPERATING",
+      "waitTime": 40,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "f0750e5e-7629-4c53-99d2-e0924a8afeed",
+      "name": "Hogwarts Express™ - King's Cross Station",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "25d47d04-a917-405a-9904-9be2b499b2dd",
+      "name": "Illumination's Villain-Con Minion Blast",
+      "status": "OPERATING",
+      "waitTime": 5,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "70ac72a3-9675-4c41-a1b1-e4801072927a",
+      "name": "Harry Potter and the Escape from Gringotts™",
+      "status": "OPERATING",
+      "waitTime": 75,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "96e71193-49f0-40b2-9bba-644e530d8115",
+      "name": "Kang & Kodos' Twirl 'n' Hurl",
+      "status": "OPERATING",
+      "waitTime": 20,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "ec25d9a7-b4d4-4ebf-a6c4-c18389351764",
+      "name": "Revenge of the Mummy™",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "6a3ffac7-bef4-4a22-8ba6-f2963aac7f70",
+      "name": "Fast & Furious - Supercharged™",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "750939c5-a69e-408a-8d55-66c272fa265e",
+      "name": "TRANSFORMERS™ The Ride-3D",
+      "status": "OPERATING",
+      "waitTime": 45,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T17:25:11Z",
+      "attractionId": "7288f24a-396e-4eeb-bb3b-4a90e65269f2",
+      "name": "Despicable Me Minion Mayhem™",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
     }
   ],
-  "lastCollectedAt": "2026-07-07T17:20:33Z"
+  "lastCollectedAt": "2026-07-07T17:25:11Z"
 }
