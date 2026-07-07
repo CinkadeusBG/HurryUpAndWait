@@ -67,7 +67,7 @@ Use the numeric workflow ID (`308819232`) in the URL, not the filename. Both wor
 - cron-job.org shows **HTTP 204** (success — GitHub returns no body)
 - Within ~20 seconds: new run at [Collect Wait Times workflow](https://github.com/CinkadeusBG/HurryUpAndWait/actions/workflows/collect-wait-times.yml) with event **workflow_dispatch**
 - During park hours: new commit `chore(data): collect wait times ...` on `main`
-- Deploy workflow runs automatically after each successful collection
+- Site redeploys every **15 minutes** via `deploy-pages.yml` schedule (not on every data commit)
 
 ## Step 3 — Verify
 
@@ -101,7 +101,20 @@ Helper scripts in `scripts/` (read `GITHUB_TOKEN` from the environment):
 | HTTP 403 | Token missing **Actions: Read and write** (fine-grained) or `repo` scope (classic) |
 | HTTP 422 | Body missing or invalid — must be `{"ref":"main"}` with `Content-Type: application/json` |
 | Run succeeds, no data commit | Outside park hours (normal) — or check collector logs in the Actions run |
-| Run succeeds, no deploy | Confirm `deploy-pages.yml` has the `workflow_run` trigger |
+| Data commits but site stale | Deploy runs every 15 min on schedule — wait or trigger **Deploy to GitHub Pages** manually |
+
+## Optional: external deploy cron (if GitHub schedule is slow)
+
+Data commits no longer trigger deploy. If the built-in 15-minute deploy schedule is
+unreliable, add a second cron-job.org entry:
+
+| Field | Value |
+|-------|-------|
+| **URL** | `https://api.github.com/repos/CinkadeusBG/HurryUpAndWait/actions/workflows/308792169/dispatches` |
+| **Method** | `POST` |
+| **Schedule** | Every 15 minutes (`*/15 * * * *`) |
+| **Body** | `{"ref":"main"}` |
+| **Headers** | Same `Authorization`, `Accept`, `X-GitHub-Api-Version` as the collector job |
 
 ## Alternatives to cron-job.org
 

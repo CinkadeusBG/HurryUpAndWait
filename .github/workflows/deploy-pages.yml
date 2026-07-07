@@ -1,14 +1,17 @@
 name: Deploy to GitHub Pages
 
+# Do NOT deploy on every data commit (collector runs every 5 min).
+# - push: code changes only (data/** ignored)
+# - schedule: refresh site with latest data every 15 minutes
+# - workflow_dispatch: manual deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'data/**'
+  schedule:
+    - cron: '*/15 * * * *'
   workflow_dispatch:
-  # Collector pushes use GITHUB_TOKEN, which does not trigger push workflows.
-  workflow_run:
-    workflows: [Collect Wait Times]
-    types: [completed]
-    branches: [main]
 
 permissions:
   contents: read
@@ -22,7 +25,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +47,6 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
