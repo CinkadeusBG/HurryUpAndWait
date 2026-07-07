@@ -14,6 +14,10 @@
       "name": "Animal Care at Conservation Station"
     },
     {
+      "id": "fb1e45fc-a2bb-4e3c-951d-3a4e2130b79d",
+      "name": "Acrobatico!"
+    },
+    {
       "id": "de737ffc-306b-4f32-8bbb-34e5d370ec8f",
       "name": "A Pirate's Adventure ~ Treasures of the Seven Seas"
     },
@@ -106,6 +110,14 @@
       "name": "Mickey's Magical Friendship Faire"
     },
     {
+      "id": "c113b1cf-7b6d-416a-8e21-bf8f387ecd77",
+      "name": "Meet Ariel at Walt Disney Presents"
+    },
+    {
+      "id": "a70b81bf-2934-433c-9723-afb2f24112bf",
+      "name": "Meet Figment Inside ImageWorks"
+    },
+    {
       "id": "8f8746cb-c714-4c60-848d-e2dc4e6f586b",
       "name": "Mexico Folk Art Gallery"
     },
@@ -130,6 +142,10 @@
       "name": "The Oasis Exhibits"
     },
     {
+      "id": "a7763ca6-bca3-4e78-b75c-22886aa06bec",
+      "name": "The Little Mermaid – A Musical Adventure"
+    },
+    {
       "id": "d7669edc-eaa1-4af2-bbb5-6e98df564166",
       "name": "Walt Disney Presents"
     },
@@ -140,6 +156,10 @@
     {
       "id": "4f391f0e-52be-4f9d-99d6-b3ae0373b43c",
       "name": "Wildlife Express Train"
+    },
+    {
+      "id": "001b099f-4db8-4843-8c1e-852e0e8fc2df",
+      "name": "Viva Mexico"
     }
   ]
 }
