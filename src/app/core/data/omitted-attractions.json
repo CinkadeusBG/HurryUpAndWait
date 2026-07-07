@@ -2,20 +2,20 @@
   "description": "Experiences hidden from the dashboard. Match by id (preferred) or exact API name. Add entries here as needed.",
   "attractions": [
     {
-      "id": "de737ffc-306b-4f32-8bbb-34e5d370ec8f",
-      "name": "A Pirate's Adventure ~ Treasures of the Seven Seas"
-    },
-    {
-      "id": "f010bc01-b450-4476-a5f3-a5f2813104b2",
-      "name": "Casey Jr. Splash 'N' Soak Station"
-    },
-    {
       "id": "3d8f8f8f-f984-4d2e-8dea-5a79432bdf05",
       "name": "Advanced Training Lab"
     },
     {
       "id": "4f0df9e7-d4c1-45b5-93e2-4a7bc92547b0",
       "name": "American Heritage Gallery"
+    },
+    {
+      "id": "6fbe6d02-4057-43bb-80a3-047b1e8a50ca",
+      "name": "Animal Care at Conservation Station"
+    },
+    {
+      "id": "de737ffc-306b-4f32-8bbb-34e5d370ec8f",
+      "name": "A Pirate's Adventure ~ Treasures of the Seven Seas"
     },
     {
       "id": "482169b9-2889-4747-8aef-f9d13a37d940",
@@ -30,12 +30,48 @@
       "name": "Bruce's Shark World"
     },
     {
+      "id": "f010bc01-b450-4476-a5f3-a5f2813104b2",
+      "name": "Casey Jr. Splash 'N' Soak Station"
+    },
+    {
+      "id": "fd8afd63-0cb5-4f77-b47b-fb277f12d9f8",
+      "name": "¡Celebración Encanto!"
+    },
+    {
+      "id": "4d27b0d7-2b0a-4569-90fa-e79f117ec7ef",
+      "name": "Discovery Island Trails"
+    },
+    {
+      "id": "8b388cbf-5307-48a3-b304-5132c82f4704",
+      "name": "Disney's Celebrate America! – A Fourth of July Concert in the Sky"
+    },
+    {
       "id": "35ed719b-f7f0-488f-8346-4fbf8055d373",
       "name": "Disney and Pixar Short Film Festival"
     },
     {
+      "id": "86c198b0-7c02-4354-814a-27ad70067d45",
+      "name": "Disney Enchantment at Disney After Hours at Magic Kingdom"
+    },
+    {
+      "id": "6e70f3fb-faab-41b1-8d26-b85d1c5cfa26",
+      "name": "Entertainment at Canada Mill Stage"
+    },
+    {
       "id": "07dbeaea-85fa-45f2-872f-02f9e7510419",
       "name": "Gallery of Arts and History"
+    },
+    {
+      "id": "0e35a7a2-c2cd-451b-88e2-afc9d370e69e",
+      "name": "Garden Rocks Concert Series at EPCOT International Flower & Garden Festival"
+    },
+    {
+      "id": "e7976e25-4322-4587-8ded-fb1d9dcbb83c",
+      "name": "Gorilla Falls Exploration Trail"
+    },
+    {
+      "id": "25dde3fe-dd27-4a4c-912f-12afd3b8dbd1",
+      "name": "Heartbeat of Freedom"
     },
     {
       "id": "0f40274d-420a-425a-9377-29fd6e49484f",
@@ -52,6 +88,58 @@
     {
       "id": "3ace01d1-15fc-4fbb-99e4-81a696cb2d05",
       "name": "Kidcot Fun Stops"
+    },
+    {
+      "id": "1a8ea967-229a-42a0-8290-59b036c84e14",
+      "name": "Maharajah Jungle Trek"
+    },
+    {
+      "id": "76eadac1-cdfa-45e5-a25c-54ed4c3a604f",
+      "name": "Marimba de las Américas"
+    },
+    {
+      "id": "296d164a-8b9a-49d3-a285-637b86731260",
+      "name": "Matsuriza"
+    },
+    {
+      "id": "4c31b3ad-5dc9-437f-ac1a-0fdff36a2818",
+      "name": "Mickey's Magical Friendship Faire"
+    },
+    {
+      "id": "8f8746cb-c714-4c60-848d-e2dc4e6f586b",
+      "name": "Mexico Folk Art Gallery"
+    },
+    {
+      "id": "18c533d6-a395-4ae4-9488-80fce9c497fe",
+      "name": "Palais du Cinéma"
+    },
+    {
+      "id": "9053240b-7f7f-44fe-970b-bd7956cd5d4f",
+      "name": "Project Tomorrow: Inventing the Wonders of the Future"
+    },
+    {
+      "id": "7969166f-feef-4350-b26e-6a6c745528f4",
+      "name": "SeaBase Aquarium"
+    },
+    {
+      "id": "66ff36de-9cb3-4d9a-b891-1665d19ffb3e",
+      "name": "Stave Church Gallery"
+    },
+    {
+      "id": "bc997600-fcc0-4f6f-b908-a1419b26cfd8",
+      "name": "The Oasis Exhibits"
+    },
+    {
+      "id": "d7669edc-eaa1-4af2-bbb5-6e98df564166",
+      "name": "Walt Disney Presents"
+    },
+    {
+      "id": "6ef1b126-5b0b-46a1-8608-4fcf98ab92c8",
+      "name": "Wilderness Explorers"
+    },
+    {
+      "id": "4f391f0e-52be-4f9d-99d6-b3ae0373b43c",
+      "name": "Wildlife Express Train"
     }
   ]
 }
