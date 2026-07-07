@@ -115,27 +115,27 @@
     </button>
   </div>
 
-  @if (favoritesMode) {
-    <p class="favorites-hint">Showing starred attractions across all parks and resorts.</p>
-  } @else {
-    <div class="park-chip-scroll" role="tablist" aria-label="Select park">
-      @for (park of parks; track park.id) {
-        <button
-          type="button"
-          class="park-chip"
-          role="tab"
-          [attr.aria-selected]="park.id === selectedParkId"
-          [class.active]="park.id === selectedParkId"
-          (click)="onParkSelect(park.id)"
-        >
-          <app-park-icon [emoji]="park.emoji"></app-park-icon>
-          <span>{{ park.shortName }}</span>
-        </button>
-      }
-    </div>
-  }
+  <div class="park-selector-row">
+    @if (favoritesMode) {
+      <p class="favorites-hint">Showing starred attractions across all parks and resorts.</p>
+    } @else {
+      <div class="park-chip-scroll" role="tablist" aria-label="Select park">
+        @for (park of parks; track park.id) {
+          <button
+            type="button"
+            class="park-chip"
+            role="tab"
+            [attr.aria-selected]="park.id === selectedParkId"
+            [class.active]="park.id === selectedParkId"
+            (click)="onParkSelect(park.id)"
+          >
+            <app-park-icon [emoji]="park.emoji"></app-park-icon>
+            <span>{{ park.shortName }}</span>
+          </button>
+        }
+      </div>
+    }
 
-  <div class="header-footer">
     <div
       class="refresh-indicator"
       [attr.aria-label]="refreshAriaLabelText"
