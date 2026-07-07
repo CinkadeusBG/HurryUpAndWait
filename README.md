@@ -77,9 +77,9 @@ src/app/
 
 ## Historical data
 
-Snapshots live under `data/parks/{parkId}/{YYYY-MM-DD}.json`. The app loads them at runtime from **jsDelivr** (`cdn.jsdelivr.net/gh/.../data/`) — no site redeploy needed when `data/` changes on `main`.
+Wait-time snapshots are stored in **Turso** (`wait_snapshots` table). The app queries the database at runtime via the Turso HTTP API — no site redeploy needed when new snapshots are collected.
 
-Automated collection is currently **paused** while a new storage approach is planned. Existing JSON in the repo continues to power charts until replaced.
+Legacy JSON under `data/` remains in the repo but is no longer used by the frontend.
 
 ## Ride detail charts
 
