@@ -1347,7 +1347,119 @@
       "status": "OPERATING",
       "waitTime": 5,
       "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "bc1ffa86-9b1a-4ce9-84a5-b479dfa3cb53",
+      "name": "Tree of Life",
+      "status": "OPERATING",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "6ef1b126-5b0b-46a1-8608-4fcf98ab92c8",
+      "name": "Wilderness Explorers",
+      "status": "OPERATING",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "7a5af3b7-9bc1-4962-92d0-3ea9c9ce35f0",
+      "name": "Na'vi River Journey",
+      "status": "OPERATING",
+      "waitTime": 35,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "24cf863c-b6ba-4826-a056-0b698989cbf7",
+      "name": "Avatar Flight of Passage",
+      "status": "OPERATING",
+      "waitTime": 40,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "6fbe6d02-4057-43bb-80a3-047b1e8a50ca",
+      "name": "Animal Care at Conservation Station",
+      "status": "OPERATING",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "32e01181-9a5f-4936-8a77-0dace1de836c",
+      "name": "Kilimanjaro Safaris",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "1b15c77b-0311-4171-8e59-7f38e6d60754",
+      "name": "Zootopia: Better Zoogether!",
+      "status": "OPERATING",
+      "waitTime": 10,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "bc997600-fcc0-4f6f-b908-a1419b26cfd8",
+      "name": "The Oasis Exhibits",
+      "status": "OPERATING",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "e7976e25-4322-4587-8ded-fb1d9dcbb83c",
+      "name": "Gorilla Falls Exploration Trail",
+      "status": "OPERATING",
+      "waitTime": 5,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "4d27b0d7-2b0a-4569-90fa-e79f117ec7ef",
+      "name": "Discovery Island Trails",
+      "status": "OPERATING",
+      "waitTime": null,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "d58d9262-ec95-4161-80a0-07ca43b2f5f3",
+      "name": "Kali River Rapids",
+      "status": "OPERATING",
+      "waitTime": 45,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "64a6915f-a835-4226-ba5c-8389fc4cade3",
+      "name": "Expedition Everest - Legend of the Forbidden Mountain",
+      "status": "OPERATING",
+      "waitTime": 50,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "1a8ea967-229a-42a0-8290-59b036c84e14",
+      "name": "Maharajah Jungle Trek",
+      "status": "OPERATING",
+      "waitTime": 5,
+      "entityType": "ATTRACTION"
+    },
+    {
+      "timestamp": "2026-07-07T18:00:40Z",
+      "attractionId": "4f391f0e-52be-4f9d-99d6-b3ae0373b43c",
+      "name": "Wildlife Express Train",
+      "status": "OPERATING",
+      "waitTime": 5,
+      "entityType": "ATTRACTION"
     }
   ],
-  "lastCollectedAt": "2026-07-07T17:55:14Z"
+  "lastCollectedAt": "2026-07-07T18:00:40Z"
 }
