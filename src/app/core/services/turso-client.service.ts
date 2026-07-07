@@ -24,19 +24,25 @@ type TursoPipelineResponse = {
 
 export type TursoRow = Record<string, string | number | null>;
 
+type TursoArg =
+  | { type: 'null' }
+  | { type: 'integer'; value: string }
+  | { type: 'float'; value: string }
+  | { type: 'text'; value: string };
+
 @Injectable({ providedIn: 'root' })
 export class TursoClientService {
   private readonly http = inject(HttpClient);
   private readonly pipelineUrl = this.toPipelineUrl(TURSO_DATABASE_URL);
 
   async query(sql: string, args: Array<string | number | null> = []): Promise<TursoRow[]> {
+    const stmt: { sql: string; args?: TursoArg[] } = { sql };
+    if (args.length) {
+      stmt.args = args.map((arg) => this.encodeArg(arg));
+    }
+
     const body = {
-      requests: [
-        {
-          type: 'execute',
-          stmt: { sql, args },
-        },
-      ],
+      requests: [{ type: 'execute', stmt }],
     };
 
     const response = await firstValueFrom(
@@ -65,6 +71,20 @@ export class TursoClientService {
   private toPipelineUrl(databaseUrl: string): string {
     const normalized = databaseUrl.replace(/^libsql:\/\//, 'https://');
     return `${normalized}/v2/pipeline`;
+  }
+
+  private encodeArg(arg: string | number | null): TursoArg {
+    if (arg === null) {
+      return { type: 'null' };
+    }
+
+    if (typeof arg === 'number') {
+      return Number.isInteger(arg)
+        ? { type: 'integer', value: String(arg) }
+        : { type: 'float', value: String(arg) };
+    }
+
+    return { type: 'text', value: arg };
   }
 
   private parseCell(cell: TursoCell | undefined): string | number | null {
