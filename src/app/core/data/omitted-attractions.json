@@ -1,0 +1,57 @@
+{
+  "description": "Experiences hidden from the dashboard. Match by id (preferred) or exact API name. Add entries here as needed.",
+  "attractions": [
+    {
+      "id": "de737ffc-306b-4f32-8bbb-34e5d370ec8f",
+      "name": "A Pirate's Adventure ~ Treasures of the Seven Seas"
+    },
+    {
+      "id": "f010bc01-b450-4476-a5f3-a5f2813104b2",
+      "name": "Casey Jr. Splash 'N' Soak Station"
+    },
+    {
+      "id": "3d8f8f8f-f984-4d2e-8dea-5a79432bdf05",
+      "name": "Advanced Training Lab"
+    },
+    {
+      "id": "4f0df9e7-d4c1-45b5-93e2-4a7bc92547b0",
+      "name": "American Heritage Gallery"
+    },
+    {
+      "id": "482169b9-2889-4747-8aef-f9d13a37d940",
+      "name": "Awesome Planet"
+    },
+    {
+      "id": "6f1d3b25-42c9-4e99-9dce-6c20d7a5deea",
+      "name": "Bijutsu-kan Gallery"
+    },
+    {
+      "id": "2ecc4fff-2994-476f-9926-24a4af173838",
+      "name": "Bruce's Shark World"
+    },
+    {
+      "id": "35ed719b-f7f0-488f-8346-4fbf8055d373",
+      "name": "Disney and Pixar Short Film Festival"
+    },
+    {
+      "id": "07dbeaea-85fa-45f2-872f-02f9e7510419",
+      "name": "Gallery of Arts and History"
+    },
+    {
+      "id": "0f40274d-420a-425a-9377-29fd6e49484f",
+      "name": "House of the Whispering Willows"
+    },
+    {
+      "id": "3e5f26ee-c02d-47fd-891e-5e4479073444",
+      "name": "ImageWorks - The \"What If\" Labs"
+    },
+    {
+      "id": "dae68dee-dfba-4128-b594-6aa12add1070",
+      "name": "Journey of Water, Inspired by Moana"
+    },
+    {
+      "id": "3ace01d1-15fc-4fbb-99e4-81a696cb2d05",
+      "name": "Kidcot Fun Stops"
+    }
+  ]
+}

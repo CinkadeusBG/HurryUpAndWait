@@ -1,4 +1,5 @@
 import { ResortId } from '../constants/park.constants';
+import { isOmittedAttraction } from './omitted-attractions.utils';
 import {
   AttractionViewModel,
   EntityFilter,
@@ -195,6 +196,10 @@ export function isTrackableEntity(
   metadataMap: Record<string, EntityMetadata> = {}
 ): boolean {
   if (item.id === parkId) {
+    return false;
+  }
+
+  if (isOmittedAttraction(item)) {
     return false;
   }
 
