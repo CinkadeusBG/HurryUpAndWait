@@ -171,7 +171,8 @@ npm install chart.js@4
 
 1. Add `scripts/collect_wait_times.py`, `scripts/parks_config.json`, and `.github/workflows/collect-wait-times.yml`.
 2. In GitHub **Settings → Actions → General**, set workflow permissions to **Read and write** so the collector can commit JSON snapshots.
-3. Data lands in `data/parks/{parkId}/{YYYY-MM-DD}.json`; `data/manifest.json` lists available dates per park.
+3. Configure external cron per **[docs/EXTERNAL_CRON.md](./docs/EXTERNAL_CRON.md)** (cron-job.org → GitHub `workflow_dispatch` API every 5 min).
+4. Data lands in `data/parks/{parkId}/{YYYY-MM-DD}.json`; `data/manifest.json` lists available dates per park.
 
 ### Frontend pieces
 

@@ -1,10 +1,9 @@
 name: Collect Wait Times
 
-# Polls ThemeParks.wiki every 5 minutes. The Python script enforces
-# America/New_York operating hours (~8 AM–midnight) and skips outside that window.
+# Triggered by external cron (cron-job.org) via workflow_dispatch API every 5 minutes.
+# Native GitHub schedule cron is disabled — it never fired for this repo.
+# See docs/EXTERNAL_CRON.md. The Python script enforces park hours (8 AM–midnight Eastern).
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       force:
