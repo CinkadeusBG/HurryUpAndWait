@@ -15,8 +15,24 @@
         <div class="entity-badge" aria-hidden="true">
           <i [class]="entityTypeIcon"></i>
         </div>
-        <h3 class="attraction-name">{{ attraction.name }}</h3>
+        @if (detailLink) {
+          <a class="attraction-name attraction-link" [routerLink]="detailLink">
+            {{ attraction.name }}
+          </a>
+        } @else {
+          <h3 class="attraction-name">{{ attraction.name }}</h3>
+        }
       </div>
+
+      @if (showTrendChart) {
+        <div class="trend-chart-wrap" aria-hidden="true">
+          <app-wait-trend-chart
+            [entries]="trendEntries"
+            [timeZone]="parkTimezone"
+            [compact]="true"
+          ></app-wait-trend-chart>
+        </div>
+      }
 
       <div class="card-meta">
         @if (showParkName && attraction.parkName) {

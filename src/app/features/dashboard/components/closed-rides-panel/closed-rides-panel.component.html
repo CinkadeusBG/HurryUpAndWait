@@ -7,6 +7,7 @@
             <app-attraction-card
               [attraction]="item"
               [showParkName]="showParkName"
+              [parkTimezone]="parkTimezone"
               (favoriteToggle)="favoriteToggle.emit($event)"
             ></app-attraction-card>
           }

@@ -6,6 +6,7 @@ Live data comes from [ThemeParks.wiki](https://themeparks.wiki). Weather uses [O
 
 ## Features
 
+- **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (background collector via GitHub Actions)
 - **Live wait times** — color-coded cards with smooth fade updates on refresh
 - **Park hours** — today's schedule in park local time (Early Theme Park Entry, Early Park Admission, etc.)
 - **Show times** — upcoming performances with expandable lists on each card
@@ -49,6 +50,7 @@ npm test         # unit tests (Karma)
 
 - Angular 17 (standalone components)
 - PrimeNG 17 + PrimeIcons
+- Chart.js 4 for historical wait-time visualizations
 - ThemeParks.wiki API for live/schedule data
 - Open-Meteo for resort weather
 - SCSS with resort-themed CSS variables (Disney blue/gold, Universal purple/orange)
@@ -56,15 +58,61 @@ npm test         # unit tests (Karma)
 ## Project layout
 
 ```
+.github/workflows/
+  collect-wait-times.yml   # Cron collector (every 5 min, park hours only)
+  deploy-pages.yml         # Build + deploy static site to GitHub Pages
+data/
+  manifest.json            # Available dates per park (updated by collector)
+  parks/{parkId}/{date}.json
+scripts/
+  collect_wait_times.py    # ThemeParks.wiki poller, prune, git commit
+  parks_config.json
 src/app/
   core/
     constants/     # park IDs, resort themes, refresh intervals
     models/        # API and view-model types
-    services/      # ThemeParks, weather, favorites, clock
-    utils/         # wait-time formatting, show-time filtering, schedule labels
+    services/      # ThemeParks, weather, favorites, clock, historical data
+    utils/         # wait-time formatting, show-time filtering, chart helpers
   features/
     dashboard/     # main UI — header, filters, cards, panels, bottom nav
+    ride-detail/   # per-ride historical charts
+  shared/components/wait-trend-chart/
 ```
+
+## Historical data collection
+
+A Python workflow polls [ThemeParks.wiki](https://themeparks.wiki) every **5 minutes** during Orlando park hours (**8 AM–midnight Eastern**). Snapshots are stored under `data/parks/{parkId}/{YYYY-MM-DD}.json` and pruned after **45 days**.
+
+| File | Role |
+|------|------|
+| `.github/workflows/collect-wait-times.yml` | Scheduled GitHub Actions job |
+| `scripts/collect_wait_times.py` | API calls, append, prune, optional `git push` |
+| `scripts/parks_config.json` | Park IDs (mirrors `park.constants.ts`) |
+
+### Enable the collector on GitHub
+
+1. Push this repo to GitHub (default branch `main`).
+2. **Settings → Actions → General → Workflow permissions** → choose **Read and write permissions** (required for the collector to commit data).
+3. The `collect-wait-times` workflow runs on cron automatically. Use **Actions → Collect Wait Times → Run workflow** to test (optional **force** bypasses operating-hours check).
+4. Each data commit triggers `deploy-pages.yml`, which copies `data/` into the static build so charts load via `fetch()` at `/HurryUpAndWait/data/...`.
+
+### Run the collector locally
+
+```bash
+pip install -r scripts/requirements.txt
+python scripts/collect_wait_times.py --force   # --commit to git push
+```
+
+## Ride detail charts
+
+Click a ride title on any card to open `/ride/{parkId}/{attractionId}` with:
+
+- **Today’s trend** — standby waits collected today
+- **Hourly averages** — typical wait by hour across all stored days
+- **Day-of-week pattern** — average wait by weekday
+- **Recent hours** — last 6 hours of snapshots
+
+Live polling is unchanged; historical JSON is loaded separately from the site root.
 
 ## Configuration
 

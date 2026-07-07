@@ -1,0 +1,72 @@
+.ride-detail {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1rem 5.5rem;
+}
+
+.detail-header {
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0.35rem 0 0.2rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.detail-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.detail-banner {
+  margin-bottom: 1rem;
+}
+
+.empty-history {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.chart-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+:host ::ng-deep .detail-card.p-card {
+  height: 100%;
+}
+
+.chart-panel {
+  height: 14rem;
+}
+
+.chart-panel canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .ride-detail {
+    padding-inline: 0.75rem;
+  }
+}

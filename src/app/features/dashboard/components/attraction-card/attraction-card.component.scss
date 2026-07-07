@@ -191,6 +191,23 @@
   overflow: hidden;
 }
 
+.attraction-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.trend-chart-wrap {
+  margin-top: 0.45rem;
+  padding-right: 0.5rem;
+}
+
 .card-meta {
   display: flex;
   flex-wrap: wrap;

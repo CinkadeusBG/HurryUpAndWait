@@ -1,0 +1,76 @@
+<div class="ride-detail">
+  <header class="detail-header glass-panel">
+    <a routerLink="/" class="back-link">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back to waits
+    </a>
+
+    @if (loading) {
+      <p-skeleton width="60%" height="2rem" borderRadius="12px"></p-skeleton>
+      <p-skeleton width="40%" height="1rem" borderRadius="8px"></p-skeleton>
+    } @else if (history) {
+      <h1>{{ history.attractionName }}</h1>
+      <p class="detail-subtitle">{{ parkName }} · {{ resortLabel }}</p>
+    }
+  </header>
+
+  @if (error) {
+    <p-message severity="warn" [text]="error" styleClass="detail-banner"></p-message>
+  }
+
+  @if (!loading && !hasHistory) {
+    <p class="empty-history">
+      Historical data will appear after the background collector runs during park hours.
+    </p>
+  }
+
+  @if (!loading && hasHistory) {
+    <section class="chart-grid">
+      <p-card styleClass="detail-card glass-card">
+        <ng-template pTemplate="title">Today's trend</ng-template>
+        <ng-template pTemplate="subtitle">Wait times collected today (Eastern)</ng-template>
+        <app-wait-trend-chart
+          [entries]="todayEntries"
+          [timeZone]="timeZone"
+          [palette]="{
+            line: accent,
+            fill: accent + '33',
+            grid: 'rgba(255, 255, 255, 0.08)',
+            text: '#8fa0c4'
+          }"
+        ></app-wait-trend-chart>
+      </p-card>
+
+      <p-card styleClass="detail-card glass-card">
+        <ng-template pTemplate="title">Hourly averages</ng-template>
+        <ng-template pTemplate="subtitle">Typical wait by hour across all collected days</ng-template>
+        <div class="chart-panel">
+          <canvas #hourlyCanvas></canvas>
+        </div>
+      </p-card>
+
+      <p-card styleClass="detail-card glass-card">
+        <ng-template pTemplate="title">Day-of-week pattern</ng-template>
+        <ng-template pTemplate="subtitle">Average standby wait by weekday</ng-template>
+        <div class="chart-panel">
+          <canvas #dowCanvas></canvas>
+        </div>
+      </p-card>
+
+      <p-card styleClass="detail-card glass-card">
+        <ng-template pTemplate="title">Recent hours</ng-template>
+        <ng-template pTemplate="subtitle">Last 6 hours of collected snapshots</ng-template>
+        <app-wait-trend-chart
+          [entries]="recentEntries"
+          [timeZone]="timeZone"
+          [palette]="{
+            line: accent,
+            fill: accent + '33',
+            grid: 'rgba(255, 255, 255, 0.08)',
+            text: '#8fa0c4'
+          }"
+        ></app-wait-trend-chart>
+      </p-card>
+    </section>
+  }
+</div>

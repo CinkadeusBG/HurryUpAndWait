@@ -10,9 +10,13 @@ import {
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { AttractionViewModel } from '../../../../core/models/theme-parks.models';
+import { HistoricalDataService } from '../../../../core/services/historical-data.service';
+import { WaitTimeSnapshot } from '../../../../core/models/historical.models';
+import { WaitTrendChartComponent } from '../../../../shared/components/wait-trend-chart/wait-trend-chart.component';
 import {
   SHOW_TIME_PREVIEW_LIMIT,
   formatAttractionTypeLabel,
@@ -30,7 +34,7 @@ import { ClockService } from '../../../../core/services/clock.service';
 @Component({
   selector: 'app-attraction-card',
   standalone: true,
-  imports: [CardModule, OverlayPanelModule],
+  imports: [CardModule, OverlayPanelModule, RouterLink, WaitTrendChartComponent],
   templateUrl: './attraction-card.component.html',
   styleUrl: './attraction-card.component.scss',
   host: {
@@ -41,13 +45,16 @@ import { ClockService } from '../../../../core/services/clock.service';
 })
 export class AttractionCardComponent implements OnInit, OnChanges {
   private readonly clock = inject(ClockService);
+  private readonly historicalData = inject(HistoricalDataService);
   private readonly destroyRef = inject(DestroyRef);
 
   @Input({ required: true }) attraction!: AttractionViewModel;
   @Input() showParkName = false;
+  @Input() parkTimezone = 'America/New_York';
   @Output() favoriteToggle = new EventEmitter<string>();
 
   readonly showTimePreviewLimit = SHOW_TIME_PREVIEW_LIMIT;
+  trendEntries: WaitTimeSnapshot[] = [];
   displayedWaitValue = '';
   waitValueFading = false;
   private uiTick = 0;
@@ -79,7 +86,39 @@ export class AttractionCardComponent implements OnInit, OnChanges {
       this.syncDisplayedWait(
         !changes['attraction'].firstChange && !isNewAttraction
       );
+      this.loadTrendData();
     }
+  }
+
+  get detailLink(): string[] | null {
+    const parkId = this.attraction.parkId;
+    if (!parkId) {
+      return null;
+    }
+    return ['/ride', parkId, this.attraction.id];
+  }
+
+  get showTrendChart(): boolean {
+    return (
+      !this.isPerformanceShow &&
+      !this.isContinuousExperience &&
+      !!this.attraction.parkId
+    );
+  }
+
+  private loadTrendData(): void {
+    const parkId = this.attraction.parkId;
+    if (!parkId) {
+      this.trendEntries = [];
+      return;
+    }
+
+    this.historicalData
+      .getRecentTrend(parkId, this.attraction.id, 6)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((entries) => {
+        this.trendEntries = entries;
+      });
   }
 
   get isContinuousExperience(): boolean {

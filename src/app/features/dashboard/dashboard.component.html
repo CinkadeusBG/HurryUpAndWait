@@ -44,6 +44,7 @@
               <app-attraction-card
                 [attraction]="attraction"
                 [showParkName]="favoritesMode"
+                [parkTimezone]="parkTimezone"
                 (favoriteToggle)="onFavoriteToggle($event)"
               ></app-attraction-card>
             }
@@ -55,6 +56,7 @@
         <app-closed-rides-panel
           [closedAttractions]="closedAttractions"
           [showParkName]="favoritesMode"
+          [parkTimezone]="parkTimezone"
           (favoriteToggle)="onFavoriteToggle($event)"
         ></app-closed-rides-panel>
       }

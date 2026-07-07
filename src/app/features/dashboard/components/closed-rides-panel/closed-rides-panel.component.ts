@@ -13,5 +13,6 @@ import { AttractionCardComponent } from '../attraction-card/attraction-card.comp
 export class ClosedRidesPanelComponent {
   @Input({ required: true }) closedAttractions: AttractionViewModel[] = [];
   @Input() showParkName = false;
+  @Input() parkTimezone = 'America/New_York';
   @Output() favoriteToggle = new EventEmitter<string>();
 }

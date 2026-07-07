@@ -149,13 +149,52 @@ src/app/
         └── show-times-panel/
 ```
 
+## Historical wait data (GitHub Actions + Chart.js)
+
+### Dependencies
+
+```bash
+npm install chart.js@4
+```
+
+`angular.json` must copy the repo `data/` folder into the build output:
+
+```json
+{
+  "glob": "**/*",
+  "input": "data",
+  "output": "data"
+}
+```
+
+### Collector setup
+
+1. Add `scripts/collect_wait_times.py`, `scripts/parks_config.json`, and `.github/workflows/collect-wait-times.yml`.
+2. In GitHub **Settings → Actions → General**, set workflow permissions to **Read and write** so the collector can commit JSON snapshots.
+3. Data lands in `data/parks/{parkId}/{YYYY-MM-DD}.json`; `data/manifest.json` lists available dates per park.
+
+### Frontend pieces
+
+| Path | Purpose |
+|------|---------|
+| `src/app/core/services/historical-data.service.ts` | `fetch()` manifest + daily JSON via site base href |
+| `src/app/core/utils/chart.utils.ts` | Chart.js config + hourly/dow aggregations |
+| `src/app/shared/components/wait-trend-chart/` | Reusable line chart (card sparkline + detail page) |
+| `src/app/features/ride-detail/` | Detail route `/ride/:parkId/:attractionId` |
+
+Register the route in `app.routes.ts` and link ride titles from `attraction-card` with `routerLink`.
+
+### GitHub Pages deploy
+
+The existing `deploy-pages.yml` workflow builds with `--base-href /{repo-name}/`. Historical files are served from `{base-href}data/...` — no backend required.
+
 ## Build for production
 
 ```bash
 npm run build
 ```
 
-Output: `dist/orlando-park-pulse/`
+Output: `dist/orlando-park-pulse/` (includes `browser/data/` when snapshots exist)
 
 ## Attribution
 
