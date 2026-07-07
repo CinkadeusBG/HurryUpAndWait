@@ -1,13 +1,8 @@
 name: Deploy to GitHub Pages
 
-# Deploy only when app code changes. Historical JSON is fetched from jsDelivr at runtime.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'data/**'
-      - 'scripts/**'
-      - 'docs/**'
   workflow_dispatch:
 
 permissions:

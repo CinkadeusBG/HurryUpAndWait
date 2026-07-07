@@ -8,7 +8,7 @@ export interface WaitTimeSnapshot {
   entityType: string;
 }
 
-/** Per-park daily JSON file written under data/parks/{parkId}/{date}.json */
+/** Per-park daily snapshot bundle (legacy shape; now assembled from Turso rows). */
 export interface ParkDailyDataFile {
   parkId: string;
   parkName: string;

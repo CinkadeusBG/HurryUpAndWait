@@ -27,12 +27,7 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets",
-              {
-                "glob": "**/*",
-                "input": "data",
-                "output": "data"
-              }
+              "src/assets"
             ],
             "styles": [
               "src/styles.scss"
@@ -95,12 +90,7 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets",
-              {
-                "glob": "**/*",
-                "input": "data",
-                "output": "data"
-              }
+              "src/assets"
             ],
             "styles": [
               "src/styles.scss"

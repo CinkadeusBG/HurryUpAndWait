@@ -6,7 +6,7 @@ Live data comes from [ThemeParks.wiki](https://themeparks.wiki). Weather uses [O
 
 ## Features
 
-- **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (static JSON in `data/`)
+- **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (Turso)
 - **Live wait times** — color-coded cards with smooth fade updates on refresh
 - **Park hours** — today's schedule in park local time (Early Theme Park Entry, Early Park Admission, etc.)
 - **Show times** — upcoming performances with expandable lists on each card
@@ -60,9 +60,6 @@ npm test         # unit tests (Karma)
 ```
 .github/workflows/
   deploy-pages.yml         # Build + deploy static site to GitHub Pages
-data/
-  manifest.json            # Available dates per park
-  parks/{parkId}/{date}.json
 src/app/
   core/
     constants/     # park IDs, resort themes, refresh intervals
@@ -78,8 +75,6 @@ src/app/
 ## Historical data
 
 Wait-time snapshots are stored in **Turso** (`wait_snapshots` table). The app queries the database at runtime via the Turso HTTP API — no site redeploy needed when new snapshots are collected.
-
-Legacy JSON under `data/` remains in the repo but is no longer used by the frontend.
 
 ## Ride detail charts
 

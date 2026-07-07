@@ -149,22 +149,12 @@ src/app/
         └── show-times-panel/
 ```
 
-## Historical wait data (Chart.js)
+## Historical wait data (Chart.js + Turso)
 
 ### Dependencies
 
 ```bash
 npm install chart.js@4
-```
-
-`angular.json` must copy the repo `data/` folder into the build output:
-
-```json
-{
-  "glob": "**/*",
-  "input": "data",
-  "output": "data"
-}
 ```
 
 ### Historical data (Turso)
@@ -196,7 +186,7 @@ The existing `deploy-pages.yml` workflow builds with `--base-href /{repo-name}/`
 npm run build
 ```
 
-Output: `dist/orlando-park-pulse/` (includes `browser/data/` when snapshots exist)
+Output: `dist/orlando-park-pulse/`
 
 ## Attribution
 

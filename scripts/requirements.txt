@@ -1,2 +1,0 @@
-# Ensures America/New_York (and other IANA zones) resolve on minimal Python images.
-tzdata>=2024.1
