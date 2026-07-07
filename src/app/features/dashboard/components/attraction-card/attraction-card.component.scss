@@ -159,24 +159,6 @@
   flex: 1 1 auto;
 }
 
-.entity-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  margin-bottom: 0.45rem;
-  border-radius: 0.55rem;
-  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, transparent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--accent-glow) 25%, transparent);
-
-  i {
-    font-size: 0.82rem;
-    color: var(--accent-primary);
-  }
-}
-
 .attraction-name {
   margin: 0;
   font-family: var(--font-display);
