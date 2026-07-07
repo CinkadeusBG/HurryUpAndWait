@@ -124,7 +124,10 @@ export class WaitTrendChartComponent implements AfterViewInit, OnChanges, OnDest
         plugins: { legend: { display: false }, tooltip: { enabled: !this.compact } },
         scales: {
           x: { display: !this.compact, ticks: { maxTicksLimit: this.compact ? 0 : 4 } },
-          y: { display: !this.compact, ticks: { maxTicksLimit: this.compact ? 0 : 4 } },
+          y: {
+            display: !this.compact,
+            ticks: { maxTicksLimit: this.compact ? 0 : 4 },
+          },
         },
       })
     );

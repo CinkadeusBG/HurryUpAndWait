@@ -167,12 +167,23 @@ export const DEFAULT_CHART_PALETTE: WaitChartPalette = {
   text: '#8fa0c4',
 };
 
+/** Y-axis defaults for wait-time line charts — always anchor at 0 min. */
+export const LINE_CHART_Y_SCALE = {
+  beginAtZero: true,
+  min: 0,
+  suggestedMin: 0,
+} as const;
+
 export function buildLineChartConfig(
   labels: string[],
   values: (number | null)[],
   palette: WaitChartPalette = DEFAULT_CHART_PALETTE,
   options?: Partial<ChartOptions<'line'>>
 ): ChartConfiguration<'line'> {
+  const { scales: scaleOverrides, plugins: pluginOverrides, ...otherOptions } = options ?? {};
+  const xOverrides = scaleOverrides?.['x'];
+  const yOverrides = scaleOverrides?.['y'];
+
   return {
     type: 'line',
     data: {
@@ -205,6 +216,7 @@ export function buildLineChartConfig(
             },
           },
         },
+        ...pluginOverrides,
       },
       scales: {
         x: {
@@ -214,21 +226,30 @@ export function buildLineChartConfig(
             font: { size: 10 },
           },
           grid: { color: palette.grid },
+          ...xOverrides,
         },
         y: {
-          beginAtZero: true,
+          type: 'linear',
+          ...LINE_CHART_Y_SCALE,
           ticks: {
             color: palette.text,
             font: { size: 10 },
             callback: (value) => `${value}`,
+            ...yOverrides?.ticks,
           },
-          grid: { color: palette.grid },
+          grid: { color: palette.grid, ...yOverrides?.grid },
           title: {
             display: false,
+            ...yOverrides?.title,
           },
+          display: yOverrides?.display,
+          // Re-apply after overrides so callers cannot accidentally drop the zero baseline.
+          beginAtZero: true,
+          min: 0,
+          suggestedMin: 0,
         },
       },
-      ...options,
+      ...otherOptions,
     },
   };
 }
