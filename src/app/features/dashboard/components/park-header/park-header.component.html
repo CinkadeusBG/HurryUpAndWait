@@ -108,9 +108,29 @@
   }
 
   <div class="header-footer">
-    <p class="refresh-label">
-      {{ lastUpdatedLabel() }}
-      <span class="refresh-hint">· Auto-refresh every 3 min</span>
-    </p>
+    <div
+      class="refresh-indicator"
+      [attr.aria-label]="refreshAriaLabel()"
+      [title]="refreshAriaLabel()"
+    >
+      <svg class="refresh-ring" viewBox="0 0 24 24" aria-hidden="true">
+        <circle
+          class="refresh-ring-track"
+          cx="12"
+          cy="12"
+          [attr.r]="9"
+          fill="none"
+        ></circle>
+        <circle
+          class="refresh-ring-progress"
+          cx="12"
+          cy="12"
+          [attr.r]="9"
+          fill="none"
+          [attr.stroke-dasharray]="refreshRingCircumference"
+          [attr.stroke-dashoffset]="refreshRingOffset()"
+        ></circle>
+      </svg>
+    </div>
   </div>
 </header>

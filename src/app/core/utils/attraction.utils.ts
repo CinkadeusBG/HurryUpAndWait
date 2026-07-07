@@ -1,3 +1,4 @@
+import { ResortId } from '../constants/park.constants';
 import {
   AttractionViewModel,
   EntityFilter,
@@ -455,23 +456,42 @@ export function formatLocalDateTime(iso: string): string {
   });
 }
 
-const SCHEDULE_TYPE_LABELS: Record<string, string> = {
-  OPERATING: 'Park Hours',
-  TICKETED_EVENT: 'Ticketed Event',
-  EXTRA_HOURS: 'Extra Magic Hours',
-  PRIVATE_EVENT: 'Private Event',
-  INFO: 'Park Info',
+const SCHEDULE_TYPE_LABELS: Record<ResortId, Record<string, string>> = {
+  wdw: {
+    OPERATING: 'Park Hours',
+    TICKETED_EVENT: 'Ticketed Event',
+    EXTRA_HOURS: 'Extra Magic Hours',
+    PRIVATE_EVENT: 'Private Event',
+    INFO: 'Park Info',
+  },
+  universal: {
+    OPERATING: 'Park Hours',
+    TICKETED_EVENT: 'Ticketed Event',
+    EXTRA_HOURS: 'Early Park Admission',
+    PRIVATE_EVENT: 'Private Event',
+    INFO: 'Park Info',
+  },
+};
+
+const UNIVERSAL_SCHEDULE_DESCRIPTION_LABELS: Record<string, string> = {
+  'Early Entry': 'Early Park Admission',
 };
 
 /** Human-readable label for a park schedule row. */
-export function formatScheduleEntryLabel(entry: ScheduleEntry): string {
+export function formatScheduleEntryLabel(
+  entry: ScheduleEntry,
+  resort: ResortId = 'wdw'
+): string {
   const description = entry.description?.trim();
   if (description) {
+    if (resort === 'universal') {
+      return UNIVERSAL_SCHEDULE_DESCRIPTION_LABELS[description] ?? description;
+    }
     return description;
   }
 
   return (
-    SCHEDULE_TYPE_LABELS[entry.type] ??
+    SCHEDULE_TYPE_LABELS[resort][entry.type] ??
     entry.type
       .split('_')
       .filter(Boolean)
@@ -481,14 +501,21 @@ export function formatScheduleEntryLabel(entry: ScheduleEntry): string {
 }
 
 /** Subtitle when description adds detail beyond the primary label. */
-export function formatScheduleEntrySubtitle(entry: ScheduleEntry): string | null {
+export function formatScheduleEntrySubtitle(
+  entry: ScheduleEntry,
+  resort: ResortId = 'wdw'
+): string | null {
   const description = entry.description?.trim();
   if (!description) {
     return null;
   }
 
-  const label = formatScheduleEntryLabel(entry);
-  return label === description ? null : description;
+  const label = formatScheduleEntryLabel(entry, resort);
+  const rawDescription =
+    resort === 'universal'
+      ? (UNIVERSAL_SCHEDULE_DESCRIPTION_LABELS[description] ?? description)
+      : description;
+  return label === rawDescription ? null : description;
 }
 
 /** Current clock time in a park timezone (e.g. "2:45p"). */

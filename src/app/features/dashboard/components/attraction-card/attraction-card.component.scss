@@ -216,6 +216,11 @@
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
+  transition: opacity 0.16s ease;
+
+  &.is-fading {
+    opacity: 0;
+  }
 }
 
 .wait-unit {
@@ -313,8 +318,6 @@
   padding: 0;
   display: grid;
   gap: 0.15rem;
-  max-height: 4.5rem;
-  overflow: hidden;
 
   li {
     font-size: 0.82rem;
@@ -340,6 +343,12 @@
 .show-times-empty {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wait-value {
+    transition: none;
+  }
 }
 
 @media (max-width: 480px) {

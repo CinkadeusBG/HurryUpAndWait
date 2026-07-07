@@ -232,17 +232,33 @@
   margin-top: 0.35rem;
 }
 
-.refresh-label {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-align: right;
-  white-space: nowrap;
+.refresh-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
-.refresh-hint {
-  color: var(--text-muted);
-  opacity: 0.85;
+.refresh-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.refresh-ring-track,
+.refresh-ring-progress {
+  stroke-width: 2.25;
+  stroke-linecap: round;
+}
+
+.refresh-ring-track {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+.refresh-ring-progress {
+  stroke: var(--resort-accent, var(--accent-primary));
+  transition: stroke-dashoffset 0.35s linear;
 }
 
 :host ::ng-deep .resort-toggle {
@@ -264,10 +280,6 @@
 
 @media (max-width: 420px) {
   .park-time-label {
-    display: none;
-  }
-
-  .refresh-hint {
     display: none;
   }
 }

@@ -12,10 +12,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { BehaviorSubject, filter, switchMap } from 'rxjs';
+import { BehaviorSubject, filter, interval, switchMap } from 'rxjs';
 import {
   APP_NAME,
   ParkConfig,
+  REFRESH_INTERVAL_MS,
   RESORT_THEMES,
   ResortId,
 } from '../../../../core/constants/park.constants';
@@ -40,7 +41,9 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   private readonly weatherService = inject(WeatherService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly resort$ = new BehaviorSubject<ResortId | null>(null);
+  private readonly refreshRingRadius = 9;
   private uiTick = 0;
+  private progressTick = 0;
 
   weatherState: ResortWeatherState = {
     loading: true,
@@ -61,6 +64,7 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   @Output() favoritesModeChange = new EventEmitter<boolean>();
 
   readonly appName = APP_NAME;
+  readonly refreshRingCircumference = 2 * Math.PI * this.refreshRingRadius;
 
   readonly resortOptions = [
     { label: 'Walt Disney World', value: 'wdw' as ResortId },
@@ -72,6 +76,12 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tick) => {
         this.uiTick = tick;
+      });
+
+    interval(1000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.progressTick = Date.now();
       });
 
     this.resort$
@@ -117,12 +127,38 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
     return `${weather.temperatureF} degrees Fahrenheit, ${weather.label} at ${RESORT_THEMES[weather.resort].label}`;
   }
 
-  lastUpdatedLabel(): string {
+  refreshProgress(): number {
+    void this.progressTick;
+    if (!this.lastRefreshed) {
+      return 0;
+    }
+
+    const elapsed = Date.now() - this.lastRefreshed.getTime();
+    return Math.min(1, Math.max(0, elapsed / REFRESH_INTERVAL_MS));
+  }
+
+  refreshRingOffset(): number {
+    return this.refreshRingCircumference * (1 - this.refreshProgress());
+  }
+
+  refreshAriaLabel(): string {
     void this.uiTick;
     if (!this.lastRefreshed) {
-      return 'Not yet refreshed';
+      return 'Waiting for first data refresh';
     }
-    return `Updated ${formatRelativeUpdated(this.lastRefreshed.toISOString())}`;
+
+    const elapsed = Date.now() - this.lastRefreshed.getTime();
+    const remainingMs = Math.max(0, REFRESH_INTERVAL_MS - elapsed);
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    const updated = formatRelativeUpdated(this.lastRefreshed.toISOString());
+
+    if (remainingMs <= 0) {
+      return `Updated ${updated}. Refreshing soon`;
+    }
+
+    return `Updated ${updated}. Next refresh in about ${remainingMin} minute${
+      remainingMin === 1 ? '' : 's'
+    }`;
   }
 
   onResortSelect(resort: ResortId): void {

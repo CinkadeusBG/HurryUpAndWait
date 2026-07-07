@@ -39,7 +39,7 @@
         @if (isOpen && attraction.waitTime !== null) {
           <div class="wait-block" [class]="waitClass">
             <span class="wait-unit">min</span>
-            <span class="wait-value">{{ waitDisplay }}</span>
+            <span class="wait-value" [class.is-fading]="waitValueFading">{{ displayedWaitValue }}</span>
           </div>
         }
         <span class="hours-label">{{ isDown ? 'Status' : 'Hours' }}</span>
@@ -54,18 +54,29 @@
         <span class="show-times-label">{{ isDown ? 'Status' : 'Show times' }}</span>
         @if (relevantShowTimes.length > 0) {
           <ul class="show-times-list">
-            @for (time of visibleShowTimes; track time) {
+            @for (time of previewShowTimes; track $index) {
               <li>{{ time }}</li>
             }
           </ul>
           @if (hasMoreShowTimes) {
-            <button type="button" class="show-times-toggle" (click)="toggleShowTimes()">
-              @if (showAllTimes) {
-                Show less
-              } @else {
-                +{{ hiddenShowTimeCount }} more
-              }
+            <button
+              type="button"
+              class="show-times-toggle"
+              (click)="showTimesOverlay.toggle($event)"
+              aria-haspopup="dialog"
+            >
+              +{{ hiddenShowTimeCount }} more
             </button>
+            <p-overlayPanel #showTimesOverlay styleClass="show-times-overlay">
+              <div class="show-times-overlay-content">
+                <p class="show-times-overlay-title">All show times</p>
+                <ul class="show-times-overlay-list">
+                  @for (time of relevantShowTimes; track $index) {
+                    <li>{{ time }}</li>
+                  }
+                </ul>
+              </div>
+            </p-overlayPanel>
           }
         } @else {
           <span class="show-times-empty">{{
@@ -84,7 +95,7 @@
         @if (isOpen && attraction.waitTime !== null) {
           <span class="wait-unit">min</span>
         }
-        <span class="wait-value">{{ isDown ? 'Down' : waitDisplay }}</span>
+        <span class="wait-value" [class.is-fading]="waitValueFading">{{ displayedWaitValue }}</span>
       </div>
     }
   </div>

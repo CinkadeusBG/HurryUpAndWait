@@ -61,7 +61,10 @@
     }
 
     @if (activeTab === 'hours') {
-      <app-park-hours-panel [schedule]="schedule"></app-park-hours-panel>
+      <app-park-hours-panel
+        [schedule]="schedule"
+        [resort]="selectedResort"
+      ></app-park-hours-panel>
     }
 
     @if (activeTab === 'shows') {

@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { ResortId } from '../../../../core/constants/park.constants';
 import { ScheduleEntry } from '../../../../core/models/theme-parks.models';
 import {
   formatScheduleEntryLabel,
@@ -14,6 +15,7 @@ import {
 })
 export class ParkHoursPanelComponent {
   @Input({ required: true }) schedule: ScheduleEntry[] = [];
+  @Input() resort: ResortId = 'wdw';
 
   get todayEntries(): ScheduleEntry[] {
     const today = new Date().toISOString().slice(0, 10);
@@ -28,11 +30,11 @@ export class ParkHoursPanelComponent {
   }
 
   entryLabel(entry: ScheduleEntry): string {
-    return formatScheduleEntryLabel(entry);
+    return formatScheduleEntryLabel(entry, this.resort);
   }
 
   entrySubtitle(entry: ScheduleEntry): string | null {
-    return formatScheduleEntrySubtitle(entry);
+    return formatScheduleEntrySubtitle(entry, this.resort);
   }
 
   entryTrackId(entry: ScheduleEntry): string {

@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardModule } from 'primeng/card';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { AttractionViewModel } from '../../../../core/models/theme-parks.models';
 import {
   SHOW_TIME_PREVIEW_LIMIT,
@@ -28,7 +29,7 @@ import { ClockService } from '../../../../core/services/clock.service';
 @Component({
   selector: 'app-attraction-card',
   standalone: true,
-  imports: [CardModule],
+  imports: [CardModule, OverlayPanelModule],
   templateUrl: './attraction-card.component.html',
   styleUrl: './attraction-card.component.scss',
   host: {
@@ -46,20 +47,37 @@ export class AttractionCardComponent implements OnInit, OnChanges {
   @Output() favoriteToggle = new EventEmitter<string>();
 
   readonly showTimePreviewLimit = SHOW_TIME_PREVIEW_LIMIT;
-  showAllTimes = false;
+  displayedWaitValue = '';
+  waitValueFading = false;
   private uiTick = 0;
+  private waitValueKey = '';
+  private waitFadeTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly WAIT_FADE_MS = 160;
 
   ngOnInit(): void {
+    this.syncDisplayedWait(false);
     this.clock.tick$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tick) => {
         this.uiTick = tick;
       });
+    this.destroyRef.onDestroy(() => {
+      if (this.waitFadeTimer) {
+        clearTimeout(this.waitFadeTimer);
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['attraction']) {
-      this.showAllTimes = false;
+      const previous = changes['attraction'].previousValue as
+        | AttractionViewModel
+        | undefined;
+      const isNewAttraction =
+        !!previous && previous.id !== this.attraction.id;
+      this.syncDisplayedWait(
+        !changes['attraction'].firstChange && !isNewAttraction
+      );
     }
   }
 
@@ -115,6 +133,39 @@ export class AttractionCardComponent implements OnInit, OnChanges {
     return formatWaitTime(this.attraction.waitTime, this.isOpen);
   }
 
+  private getWaitValueKey(): string {
+    return `${this.attraction.displayStatus}|${this.attraction.waitTime ?? 'null'}`;
+  }
+
+  private getWaitValueText(): string {
+    return this.isDown ? 'Down' : this.waitDisplay;
+  }
+
+  private syncDisplayedWait(animate: boolean): void {
+    if (this.waitFadeTimer) {
+      clearTimeout(this.waitFadeTimer);
+      this.waitFadeTimer = null;
+    }
+
+    const nextKey = this.getWaitValueKey();
+    const nextText = this.getWaitValueText();
+
+    if (!animate || nextKey === this.waitValueKey) {
+      this.waitValueFading = false;
+      this.displayedWaitValue = nextText;
+      this.waitValueKey = nextKey;
+      return;
+    }
+
+    this.waitValueFading = true;
+    this.waitFadeTimer = setTimeout(() => {
+      this.waitFadeTimer = null;
+      this.displayedWaitValue = nextText;
+      this.waitValueKey = nextKey;
+      this.waitValueFading = false;
+    }, AttractionCardComponent.WAIT_FADE_MS);
+  }
+
   get operatingHoursLabel(): string | null {
     void this.uiTick;
     return getRelevantOperatingHoursLabel(this.attraction);
@@ -125,10 +176,7 @@ export class AttractionCardComponent implements OnInit, OnChanges {
     return getRelevantShowTimes(this.attraction.showtimes);
   }
 
-  get visibleShowTimes(): string[] {
-    if (this.showAllTimes) {
-      return this.relevantShowTimes;
-    }
+  get previewShowTimes(): string[] {
     return this.relevantShowTimes.slice(0, this.showTimePreviewLimit);
   }
 
@@ -138,10 +186,6 @@ export class AttractionCardComponent implements OnInit, OnChanges {
 
   get hasMoreShowTimes(): boolean {
     return this.hiddenShowTimeCount > 0;
-  }
-
-  toggleShowTimes(): void {
-    this.showAllTimes = !this.showAllTimes;
   }
 
   onFavoriteClick(): void {

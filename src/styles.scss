@@ -97,6 +97,54 @@ body {
   z-index: 1200 !important;
 }
 
+.show-times-overlay.p-overlaypanel {
+  margin-top: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, #12182a 92%, #000);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+
+  &::before,
+  &::after {
+    display: none;
+  }
+
+  .p-overlaypanel-content {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .show-times-overlay-content {
+    min-width: 6.5rem;
+  }
+
+  .show-times-overlay-title {
+    margin: 0 0 0.45rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .show-times-overlay-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+    max-height: 11rem;
+    overflow-y: auto;
+
+    li {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+  }
+}
+
 .p-accordion .p-accordion-header-link {
   background: transparent;
   border: none;
