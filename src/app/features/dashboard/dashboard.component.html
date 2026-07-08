@@ -3,6 +3,7 @@
     [selectedResort]="selectedResort"
     [selectedParkId]="selectedParkId"
     [parks]="parks"
+    [parkLightningLanePricing]="parkLightningLanePricing"
     [lastRefreshed]="lastRefreshed"
     [parkTimezone]="parkTimezone"
     [favoritesMode]="favoritesMode"
@@ -21,12 +22,8 @@
       <app-filter-toolbar
         [search]="search"
         [sort]="sort"
-        [entityFilter]="entityFilter"
-        [waitRange]="waitRange"
         (searchChange)="search = $event"
         (sortChange)="sort = $event"
-        (entityFilterChange)="entityFilter = $event"
-        (waitRangeChange)="waitRange = $event"
       ></app-filter-toolbar>
 
       <section class="attractions-section">
@@ -79,6 +76,11 @@
         [openAttractions]="openAttractions"
         [closedCount]="closedAttractions.length"
       ></app-quick-stats-panel>
+      <app-park-ll-stats-panel
+        [parkId]="selectedParkId"
+        [resort]="selectedResort"
+        [parkLightningLanePricing]="parkLightningLanePricing"
+      ></app-park-ll-stats-panel>
     }
   </main>
 

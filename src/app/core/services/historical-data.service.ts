@@ -13,9 +13,13 @@ import {
 import {
   AttractionHistoryBundle,
   DataManifest,
+  IllDailySnapshot,
   ParkDailyDataFile,
+  ParkIllAttractionSummary,
+  ParkLlDailySnapshot,
   WaitTimeSnapshot,
 } from '../models/historical.models';
+import { averageIllPriceCents } from '../utils/ill-display.utils';
 import { TursoClientService, type TursoRow } from './turso-client.service';
 
 const SNAPSHOT_SELECT = `
@@ -29,6 +33,33 @@ const SNAPSHOT_SELECT = `
   FROM wait_snapshots
 `;
 
+const ILL_SELECT = `
+  SELECT
+    park_id AS parkId,
+    park_name AS parkName,
+    local_date AS localDate,
+    collected_at AS collectedAt,
+    attraction_id AS attractionId,
+    attraction_name AS attractionName,
+    price_cents AS priceCents,
+    sold_out AS soldOut,
+    source
+  FROM ill_daily_snapshots
+`;
+
+const PARK_LL_SELECT = `
+  SELECT
+    park_id AS parkId,
+    park_name AS parkName,
+    local_date AS localDate,
+    collected_at AS collectedAt,
+    multi_pass_cents AS multiPassCents,
+    multi_pass_sold_out AS multiPassSoldOut,
+    premier_pass_cents AS premierPassCents,
+    premier_pass_sold_out AS premierPassSoldOut
+  FROM park_ll_daily_snapshots
+`;
+
 @Injectable({ providedIn: 'root' })
 export class HistoricalDataService {
   private readonly turso = inject(TursoClientService);
@@ -39,6 +70,9 @@ export class HistoricalDataService {
     Observable<AttractionHistoryBundle>
   >();
   private readonly recentTrendCache = new Map<string, Observable<WaitTimeSnapshot[]>>();
+  private readonly parkIllCache = new Map<string, Observable<ParkIllAttractionSummary[]>>();
+  private readonly parkLlCache = new Map<string, Observable<ParkLlDailySnapshot[]>>();
+  private readonly attractionIllCache = new Map<string, Observable<IllDailySnapshot[]>>();
 
   getManifest(): Observable<DataManifest> {
     const cacheKey = 'manifest';
@@ -100,6 +134,49 @@ export class HistoricalDataService {
     }
 
     return this.attractionHistoryCache.get(cacheKey)!;
+  }
+
+  /** Daily park-level Multi Pass / Premier Pass history for a WDW park. */
+  getParkLlHistory(parkId: string): Observable<ParkLlDailySnapshot[]> {
+    if (!this.parkLlCache.has(parkId)) {
+      const request$ = from(this.loadParkLlHistory(parkId)).pipe(
+        catchError(() => of([])),
+        shareReplay(1)
+      );
+      this.parkLlCache.set(parkId, request$);
+    }
+
+    return this.parkLlCache.get(parkId)!;
+  }
+
+  /** Daily ILL history grouped by attraction for a WDW park. */
+  getParkIllSummaries(parkId: string): Observable<ParkIllAttractionSummary[]> {
+    if (!this.parkIllCache.has(parkId)) {
+      const request$ = from(this.loadParkIllSummaries(parkId)).pipe(
+        catchError(() => of([])),
+        shareReplay(1)
+      );
+      this.parkIllCache.set(parkId, request$);
+    }
+
+    return this.parkIllCache.get(parkId)!;
+  }
+
+  /** Daily ILL history for one attraction. */
+  getAttractionIllHistory(
+    parkId: string,
+    attractionId: string
+  ): Observable<IllDailySnapshot[]> {
+    const cacheKey = `${parkId}:${attractionId}`;
+    if (!this.attractionIllCache.has(cacheKey)) {
+      const request$ = from(this.loadAttractionIllHistory(parkId, attractionId)).pipe(
+        catchError(() => of([])),
+        shareReplay(1)
+      );
+      this.attractionIllCache.set(cacheKey, request$);
+    }
+
+    return this.attractionIllCache.get(cacheKey)!;
   }
 
   /** Sparkline data: recent hours for one attraction from today's park snapshots. */
@@ -220,6 +297,66 @@ export class HistoricalDataService {
     };
   }
 
+  private async loadParkLlHistory(parkId: string): Promise<ParkLlDailySnapshot[]> {
+    const rows = await this.turso.query(
+      `${PARK_LL_SELECT}
+       WHERE park_id = ?
+       ORDER BY local_date DESC`,
+      [parkId]
+    );
+
+    return rows.map((row) => this.mapParkLlRow(row));
+  }
+
+  private async loadParkIllSummaries(
+    parkId: string
+  ): Promise<ParkIllAttractionSummary[]> {
+    const rows = await this.turso.query(
+      `${ILL_SELECT}
+       WHERE park_id = ?
+       ORDER BY attraction_name ASC, local_date ASC`,
+      [parkId]
+    );
+
+    const grouped = new Map<string, IllDailySnapshot[]>();
+    for (const row of rows) {
+      const snapshot = this.mapIllRow(row);
+      const entries = grouped.get(snapshot.attractionId) ?? [];
+      entries.push(snapshot);
+      grouped.set(snapshot.attractionId, entries);
+    }
+
+    return [...grouped.entries()]
+      .map(([attractionId, history]) => {
+        const latest = history.at(-1) ?? null;
+        return {
+          attractionId,
+          attractionName: latest?.attractionName ?? attractionId,
+          history,
+          latest,
+          averagePriceCents: averageIllPriceCents(history),
+          soldOutDays: history.filter((entry) => entry.soldOut).length,
+        } satisfies ParkIllAttractionSummary;
+      })
+      .sort((left, right) =>
+        left.attractionName.localeCompare(right.attractionName)
+      );
+  }
+
+  private async loadAttractionIllHistory(
+    parkId: string,
+    attractionId: string
+  ): Promise<IllDailySnapshot[]> {
+    const rows = await this.turso.query(
+      `${ILL_SELECT}
+       WHERE park_id = ? AND attraction_id = ?
+       ORDER BY local_date ASC`,
+      [parkId, attractionId]
+    );
+
+    return rows.map((row) => this.mapIllRow(row));
+  }
+
   private async loadRecentTrend(
     parkId: string,
     attractionId: string,
@@ -238,6 +375,42 @@ export class HistoricalDataService {
     );
 
     return rows.map((row) => this.mapSnapshotRow(row));
+  }
+
+  private mapParkLlRow(row: TursoRow): ParkLlDailySnapshot {
+    const multiPassCents = row['multiPassCents'];
+    const premierPassCents = row['premierPassCents'];
+
+    return {
+      parkId: String(row['parkId']),
+      parkName: String(row['parkName']),
+      localDate: String(row['localDate']),
+      collectedAt: String(row['collectedAt']),
+      multiPassCents:
+        multiPassCents === null || multiPassCents === undefined
+          ? null
+          : Number(multiPassCents),
+      multiPassSoldOut: Number(row['multiPassSoldOut']) === 1,
+      premierPassCents:
+        premierPassCents === null || premierPassCents === undefined
+          ? null
+          : Number(premierPassCents),
+      premierPassSoldOut: Number(row['premierPassSoldOut']) === 1,
+    };
+  }
+
+  private mapIllRow(row: TursoRow): IllDailySnapshot {
+    return {
+      parkId: String(row['parkId']),
+      parkName: String(row['parkName']),
+      localDate: String(row['localDate']),
+      collectedAt: String(row['collectedAt']),
+      attractionId: String(row['attractionId']),
+      attractionName: String(row['attractionName']),
+      priceCents: Number(row['priceCents']),
+      soldOut: Number(row['soldOut']) === 1,
+      source: String(row['source']),
+    };
   }
 
   private mapSnapshotRow(row: TursoRow): WaitTimeSnapshot {

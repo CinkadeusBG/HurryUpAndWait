@@ -127,10 +127,25 @@
             role="tab"
             [attr.aria-selected]="park.id === selectedParkId"
             [class.active]="park.id === selectedParkId"
+            [class.has-lightning-lane-pricing]="
+              showParkLightningLanePricing && parkLightningLanePrices(park.id)
+            "
+            [attr.aria-label]="parkLightningLaneAriaLabel(park) ?? park.shortName"
             (click)="onParkSelect(park.id)"
           >
             <app-park-icon [emoji]="park.emoji"></app-park-icon>
-            <span>{{ park.shortName }}</span>
+            <span class="park-chip-label">{{ park.shortName }}</span>
+            @if (showParkLightningLanePricing && parkLightningLanePrices(park.id); as pricing) {
+              <span
+                class="lightning-lane-pricing"
+                [attr.title]="parkLightningLaneAriaLabel(park) ?? undefined"
+              >
+                <i class="pi pi-bolt" aria-hidden="true"></i>
+                <span class="lightning-lane-pricing-values">
+                  {{ pricing.multiPass ?? '—' }} / {{ pricing.premierPass ?? '—' }}
+                </span>
+              </span>
+            }
           </button>
         }
       </div>

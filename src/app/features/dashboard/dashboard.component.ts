@@ -27,11 +27,9 @@ import {
 import {
   AllParksDashboardState,
   AttractionViewModel,
-  EntityFilter,
   ParkDashboardState,
   ParkLiveBundle,
   SortOption,
-  WaitRangeFilter,
 } from '../../core/models/theme-parks.models';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
@@ -44,11 +42,16 @@ import {
   sortAttractions,
   toAttractionViewModel,
 } from '../../core/utils/attraction.utils';
+import {
+  buildLightningLanePurchaseMap,
+  type ParkLightningLanePricing,
+} from '../../core/utils/lightning-lane.utils';
 import { AttractionCardComponent } from './components/attraction-card/attraction-card.component';
 import { ClosedRidesPanelComponent } from './components/closed-rides-panel/closed-rides-panel.component';
 import { FilterToolbarComponent } from './components/filter-toolbar/filter-toolbar.component';
 import { ParkHeaderComponent } from './components/park-header/park-header.component';
 import { ParkHoursPanelComponent } from './components/park-hours-panel/park-hours-panel.component';
+import { ParkLlStatsPanelComponent } from './components/park-ll-stats-panel/park-ll-stats-panel.component';
 import { QuickStatsPanelComponent } from './components/quick-stats-panel/quick-stats-panel.component';
 import { ShowTimesPanelComponent } from './components/show-times-panel/show-times-panel.component';
 
@@ -75,6 +78,7 @@ const PREF_KEYS = {
     ParkHoursPanelComponent,
     ShowTimesPanelComponent,
     QuickStatsPanelComponent,
+    ParkLlStatsPanelComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -93,14 +97,13 @@ export class DashboardComponent implements OnInit {
 
   search = '';
   sort: SortOption = 'shortest-wait';
-  entityFilter: EntityFilter = 'all';
-  waitRange: WaitRangeFilter = 'all';
 
   loading = true;
   error: string | null = null;
   lastRefreshed: Date | null = null;
   parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
   schedule: import('../../core/models/theme-parks.models').ScheduleEntry[] = [];
+  parkLightningLanePricing: Record<string, ParkLightningLanePricing> = {};
 
   private readonly parkId$ = new BehaviorSubject<string>(this.selectedParkId);
   private readonly favoritesMode$ = new BehaviorSubject<boolean>(this.favoritesMode);
@@ -146,6 +149,13 @@ export class DashboardComponent implements OnInit {
         this.favoriteCount = this.favoritesService.getSnapshot().size;
         this.rebuildViewModels();
       });
+
+    this.themeParksService
+      .watchWdwParkLightningLanePricing()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((pricing) => {
+        this.parkLightningLanePricing = pricing;
+      });
   }
 
   get parks(): ParkConfig[] {
@@ -161,12 +171,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get filteredAttractions(): AttractionViewModel[] {
-    const filtered = filterAttractions(
-      this.allAttractions,
-      this.search,
-      this.entityFilter,
-      this.waitRange
-    );
+    const filtered = filterAttractions(this.allAttractions, this.search, 'all', 'all');
     return sortAttractions(filtered, this.sort);
   }
 
@@ -241,12 +246,13 @@ export class DashboardComponent implements OnInit {
 
     if (!state.loading && !state.error) {
       this.parkTimezone = state.timezone;
+      const parkConfig = getParkById(parkId);
       this.allAttractions = this.buildAttractionsFromPark(
         {
           parkId,
-          parkName: getParkById(parkId)?.name ?? 'Park',
-          parkShortName: getParkById(parkId)?.shortName ?? 'Park',
-          resort: getParkById(parkId)?.resort ?? this.selectedResort,
+          parkName: parkConfig?.name ?? 'Park',
+          parkShortName: parkConfig?.shortName ?? 'Park',
+          resort: parkConfig?.resort ?? this.selectedResort,
           timezone: state.timezone,
           liveData: state.liveData,
           schedule: state.schedule,
@@ -279,6 +285,11 @@ export class DashboardComponent implements OnInit {
     favoritesOnly: boolean
   ): AttractionViewModel[] {
     const favoriteIds = this.favoritesService.getSnapshot();
+    const resort = park.resort as ResortId;
+    const lightningLanePurchases =
+      resort === 'wdw'
+        ? buildLightningLanePurchaseMap(park.schedule, park.timezone)
+        : new Map();
 
     return park.liveData
       .filter(
@@ -295,7 +306,9 @@ export class DashboardComponent implements OnInit {
           {
             parkId: park.parkId,
             parkName: park.parkShortName,
-          }
+            resort,
+          },
+          lightningLanePurchases
         )
       );
   }

@@ -50,6 +50,20 @@
           <i [class]="entityTypeIcon" aria-hidden="true"></i>
           {{ entityTypeLabel }}
         </span>
+        @if (showLightningLanePrice) {
+          <span
+            class="meta-chip lightning-lane-chip"
+            [class.is-sold-out]="lightningLaneSoldOut"
+            [attr.aria-label]="lightningLaneAriaLabel"
+            [attr.title]="lightningLaneAriaLabel"
+          >
+            <i class="pi pi-bolt" aria-hidden="true"></i>
+            <span class="lightning-lane-price">{{ attraction.lightningLanePrice }}</span>
+            @if (lightningLaneSoldOut) {
+              <span class="lightning-lane-sold-out-label">Sold out</span>
+            }
+          </span>
+        }
       </div>
     </div>
 

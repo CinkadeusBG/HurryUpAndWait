@@ -1,0 +1,4 @@
+# collect_ill_daily.py uses Python stdlib only (urllib, zoneinfo).
+# No pip packages required on the *arr server.
+#
+# Minimum: Python 3.9+ (for zoneinfo)

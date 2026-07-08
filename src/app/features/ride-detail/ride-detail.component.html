@@ -18,20 +18,79 @@
     <p-message severity="warn" [text]="error" styleClass="detail-banner"></p-message>
   }
 
-  @if (!loading && !hasHistory) {
+  @if (!loading && !hasHistory && !showIllSection) {
     <p class="empty-history">
       Historical data will appear after the background collector runs during park hours.
     </p>
   }
 
+  @if (showIllSection) {
+    <section class="ill-section">
+      <p-card styleClass="detail-card glass-card">
+        <ng-template pTemplate="title">Individual Lightning Lane</ng-template>
+        <ng-template pTemplate="subtitle">
+          End-of-day ILL prices (gray/red bars were sold out that day)
+        </ng-template>
+
+        @if (liveIllPriceLabel) {
+          <p class="live-ill-banner" [class.is-sold-out]="liveIllSoldOut">
+            <i class="pi pi-bolt" aria-hidden="true"></i>
+            Live today:
+            <strong>{{ liveIllPriceLabel }}</strong>
+            @if (liveIllSoldOut) {
+              <span class="sold-out-pill">Sold out</span>
+            }
+          </p>
+        }
+
+        @if (hasIllHistory) {
+          <div class="ill-stats-grid">
+            <article class="ill-stat-card">
+              <p class="ill-stat-label">Latest stored</p>
+              <p class="ill-stat-value" [class.is-sold-out]="latestIllSnapshot?.soldOut">
+                {{ latestIllPriceLabel ?? '—' }}
+              </p>
+              @if (latestIllDateLabel) {
+                <p class="ill-stat-hint">{{ latestIllDateLabel }}</p>
+              }
+            </article>
+            <article class="ill-stat-card">
+              <p class="ill-stat-label">Average</p>
+              <p class="ill-stat-value">{{ averageIllPriceLabel ?? '—' }}</p>
+              <p class="ill-stat-hint">Across stored days</p>
+            </article>
+            <article class="ill-stat-card">
+              <p class="ill-stat-label">Sold-out days</p>
+              <p class="ill-stat-value">{{ illSoldOutDays }} / {{ illHistory.length }}</p>
+              <p class="ill-stat-hint">From nightly collection</p>
+            </article>
+          </div>
+        }
+
+        @if (illLoading) {
+          <p-skeleton height="14rem" borderRadius="12px"></p-skeleton>
+        } @else if (hasIllHistory) {
+          <div class="chart-panel">
+            <canvas #illCanvas></canvas>
+          </div>
+        } @else {
+          <p class="ill-empty">
+            Nightly ILL history will appear here after the evening collector runs on the server.
+          </p>
+        }
+      </p-card>
+    </section>
+  }
+
   @if (!loading && hasHistory) {
     <section class="chart-grid">
-      <p-card styleClass="detail-card glass-card">
+      <p-card styleClass="detail-card glass-card chart-span-full">
         <ng-template pTemplate="title">Today's trend</ng-template>
         <ng-template pTemplate="subtitle">Wait times collected today (Eastern)</ng-template>
         <app-wait-trend-chart
           [entries]="todayEntries"
           [timeZone]="timeZone"
+          [large]="true"
           [palette]="{
             line: accent,
             fill: accent + '33',
@@ -42,27 +101,32 @@
       </p-card>
 
       <p-card styleClass="detail-card glass-card">
-        <ng-template pTemplate="title">Hourly averages</ng-template>
-        <ng-template pTemplate="subtitle">Typical wait by hour across all collected days</ng-template>
-        <div class="chart-panel">
-          <canvas #hourlyCanvas></canvas>
-        </div>
+        <ng-template pTemplate="title">15-minute averages</ng-template>
+        <ng-template pTemplate="subtitle">Typical wait by time of day across all collected days</ng-template>
+        @if (hasFifteenMinuteAverages) {
+          <div class="chart-panel chart-panel-tall">
+            <canvas #fifteenMinuteCanvas></canvas>
+          </div>
+        } @else {
+          <p class="chart-empty">Not enough snapshots yet for time-of-day averages.</p>
+        }
       </p-card>
 
       <p-card styleClass="detail-card glass-card">
         <ng-template pTemplate="title">Day-of-week pattern</ng-template>
         <ng-template pTemplate="subtitle">Average standby wait by weekday</ng-template>
-        <div class="chart-panel">
+        <div class="chart-panel chart-panel-tall">
           <canvas #dowCanvas></canvas>
         </div>
       </p-card>
 
-      <p-card styleClass="detail-card glass-card">
+      <p-card styleClass="detail-card glass-card chart-span-full">
         <ng-template pTemplate="title">Recent hours</ng-template>
         <ng-template pTemplate="subtitle">Last 6 hours of collected snapshots</ng-template>
         <app-wait-trend-chart
           [entries]="recentEntries"
           [timeZone]="timeZone"
+          [large]="true"
           [palette]="{
             line: accent,
             fill: accent + '33',

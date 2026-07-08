@@ -14,7 +14,16 @@ import {
   switchMap,
   throwError,
 } from 'rxjs';
-import { API_BASE_URL, PARKS, REFRESH_INTERVAL_MS } from '../constants/park.constants';
+import {
+  API_BASE_URL,
+  PARKS,
+  REFRESH_INTERVAL_MS,
+  getParksForResort,
+} from '../constants/park.constants';
+import {
+  getParkLightningLanePricing,
+  type ParkLightningLanePricing,
+} from '../utils/lightning-lane.utils';
 import {
   AllParksDashboardState,
   EntityChildrenResponse,
@@ -65,6 +74,50 @@ export class ThemeParksService {
 
   refreshNow(): void {
     this.manualRefresh$.next();
+  }
+
+  /** Today's Multi Pass and Premier Pass prices per WDW park. */
+  watchWdwParkLightningLanePricing(): Observable<
+    Record<string, ParkLightningLanePricing>
+  > {
+    const wdwParks = getParksForResort('wdw');
+
+    return combineLatest([
+      this.manualRefresh$.pipe(startWith(undefined)),
+      interval(REFRESH_INTERVAL_MS).pipe(startWith(0)),
+    ]).pipe(
+      switchMap(() =>
+        forkJoin(
+          wdwParks.map((park) =>
+            this.getSchedule(park.id).pipe(
+              map(
+                (response) =>
+                  [
+                    park.id,
+                    getParkLightningLanePricing(
+                      response.schedule,
+                      response.timezone
+                    ),
+                  ] as const
+              ),
+              catchError(() =>
+                of([
+                  park.id,
+                  {
+                    multiPass: null,
+                    premierPass: null,
+                    multiPassSoldOut: false,
+                    premierPassSoldOut: false,
+                  },
+                ] as const)
+              )
+            )
+          )
+        )
+      ),
+      map((entries) => Object.fromEntries(entries)),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
   }
 
   getLiveData(parkId: string): Observable<ParkLiveResponse> {

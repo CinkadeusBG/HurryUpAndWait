@@ -3,13 +3,18 @@
   z-index: 1;
   margin: 0.65rem 1rem 0;
   padding: 0.9rem 1rem;
-  display: grid;
-  gap: 0.75rem;
   border-radius: var(--radius-lg);
 }
 
+.search-sort-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
 .search-field {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 
   input {
     width: 100%;
@@ -24,29 +29,57 @@
   left: 0.95rem;
 }
 
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
+.sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
-:host ::ng-deep .filter-dropdown {
-  width: 100%;
-
-  .p-dropdown {
-    width: 100%;
-    min-height: 44px;
-    border-radius: 0.75rem;
+  i {
+    color: var(--accent-primary);
+    font-size: 0.95rem;
   }
 
-  .p-dropdown-label {
-    font-weight: 600;
-    font-size: 0.82rem;
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  &.is-longest i {
+    color: #fb923c;
   }
 }
 
-@media (max-width: 768px) {
-  .filter-row {
-    grid-template-columns: 1fr;
+.sort-toggle-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .sort-toggle-label {
+    display: none;
+  }
+
+  .sort-toggle {
+    width: 44px;
+    padding: 0;
   }
 }

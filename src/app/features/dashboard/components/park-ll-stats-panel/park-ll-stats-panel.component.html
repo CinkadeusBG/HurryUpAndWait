@@ -1,0 +1,106 @@
+@if (showPanel) {
+  <section class="panel glass-panel park-ll-stats-panel">
+    <h2 class="panel-title">
+      <i class="pi pi-bolt" aria-hidden="true"></i>
+      Lightning Lane
+    </h2>
+    <p class="panel-subtitle">
+      Today's live Multi Pass and Premier Pass pricing, plus nightly history collected on the server.
+    </p>
+
+    @if (pricing) {
+      <div class="ll-stats-grid">
+        <article class="ll-stat-card">
+          <p class="ll-stat-label">Multi Pass (MLL)</p>
+          @if (pricing.multiPass) {
+            <p class="ll-stat-value" [class.is-sold-out]="pricing.multiPassSoldOut">
+              <i class="pi pi-bolt" aria-hidden="true"></i>
+              {{ pricing.multiPass }}
+            </p>
+            @if (pricing.multiPassSoldOut) {
+              <span class="sold-out-pill">Sold out</span>
+            } @else {
+              <p class="ll-stat-hint">Available today</p>
+            }
+          } @else {
+            <p class="ll-stat-value muted">—</p>
+            <p class="ll-stat-hint">Not offered today</p>
+          }
+        </article>
+
+        <article class="ll-stat-card">
+          <p class="ll-stat-label">Premier Pass (LLPP)</p>
+          @if (pricing.premierPass) {
+            <p class="ll-stat-value" [class.is-sold-out]="pricing.premierPassSoldOut">
+              <i class="pi pi-bolt" aria-hidden="true"></i>
+              {{ pricing.premierPass }}
+            </p>
+            @if (pricing.premierPassSoldOut) {
+              <span class="sold-out-pill">Sold out</span>
+            } @else {
+              <p class="ll-stat-hint">Available today</p>
+            }
+          } @else {
+            <p class="ll-stat-value muted">—</p>
+            <p class="ll-stat-hint">Not offered today</p>
+          }
+        </article>
+      </div>
+    }
+
+    <h3 class="history-title">Daily history</h3>
+
+    @if (historyLoading) {
+      <p class="empty-state">Loading Lightning Lane history…</p>
+    } @else if (!hasHistory) {
+      <p class="empty-state">
+        No stored history yet. After the evening collector runs, daily MLL and LLPP prices will appear here.
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table class="ll-history-table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Multi Pass (MLL)</th>
+              <th scope="col">Premier Pass (LLPP)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of historyRows; track row.localDate) {
+              <tr>
+                <td>{{ row.dateLabel }}</td>
+                <td>
+                  @if (row.multiPass) {
+                    <span class="price-chip" [class.is-sold-out]="row.multiPassSoldOut">
+                      <i class="pi pi-bolt" aria-hidden="true"></i>
+                      {{ row.multiPass }}
+                    </span>
+                    @if (row.multiPassSoldOut) {
+                      <span class="sold-out-pill table-pill">Sold out</span>
+                    }
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (row.premierPass) {
+                    <span class="price-chip" [class.is-sold-out]="row.premierPassSoldOut">
+                      <i class="pi pi-bolt" aria-hidden="true"></i>
+                      {{ row.premierPass }}
+                    </span>
+                    @if (row.premierPassSoldOut) {
+                      <span class="sold-out-pill table-pill">Sold out</span>
+                    }
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

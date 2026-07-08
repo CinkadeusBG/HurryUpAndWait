@@ -1,4 +1,5 @@
 import { ResortId } from '../constants/park.constants';
+import { getLightningLanePrice } from './lightning-lane.utils';
 import { isOmittedAttraction } from './omitted-attractions.utils';
 import {
   AttractionViewModel,
@@ -7,6 +8,7 @@ import {
   LiveDataItem,
   LiveStatus,
   ScheduleEntry,
+  SchedulePurchase,
   Showtime,
   SortOption,
   WaitRangeFilter,
@@ -156,6 +158,7 @@ export function getStandbyWait(item: LiveDataItem): number | null {
 export interface AttractionViewContext {
   parkId?: string;
   parkName?: string;
+  resort?: ResortId;
 }
 
 export function toAttractionViewModel(
@@ -163,10 +166,15 @@ export function toAttractionViewModel(
   areaMap: Record<string, string>,
   favoriteIds: Set<string>,
   metadataMap: Record<string, EntityMetadata> = {},
-  context: AttractionViewContext = {}
+  context: AttractionViewContext = {},
+  lightningLanePurchases: Map<string, SchedulePurchase> = new Map()
 ): AttractionViewModel {
   const area = areaMap[item.id] ?? null;
   const metadata = metadataMap[item.id];
+  const lightningLane =
+    context.resort === 'wdw' && isRideEntity(item.entityType)
+      ? getLightningLanePrice(item, metadata, lightningLanePurchases)
+      : null;
 
   return {
     id: item.id,
@@ -183,6 +191,8 @@ export function toAttractionViewModel(
     showtimes: item.showtimes ?? [],
     operatingHours: item.operatingHours ?? [],
     isFavorite: favoriteIds.has(item.id),
+    lightningLanePrice: lightningLane?.formatted ?? null,
+    lightningLaneAvailable: lightningLane?.available ?? null,
   };
 }
 

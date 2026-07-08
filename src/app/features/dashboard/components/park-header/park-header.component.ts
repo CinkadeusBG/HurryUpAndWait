@@ -21,6 +21,10 @@ import {
   RESORT_THEMES,
   ResortId,
 } from '../../../../core/constants/park.constants';
+import {
+  ParkLightningLanePricing,
+  hasLightningLanePricePair,
+} from '../../../../core/utils/lightning-lane.utils';
 import { ResortWeatherState } from '../../../../core/models/weather.models';
 import { WeatherService } from '../../../../core/services/weather.service';
 import {
@@ -54,6 +58,8 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   @Input({ required: true }) selectedResort!: ResortId;
   @Input({ required: true }) selectedParkId!: string;
   @Input({ required: true }) parks!: ParkConfig[];
+  @Input() parkLightningLanePricing: Record<string, ParkLightningLanePricing> =
+    {};
   @Input() lastRefreshed: Date | null = null;
   @Input() parkTimezone = 'America/New_York';
   @Input() favoritesMode = false;
@@ -107,6 +113,35 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
 
   get theme() {
     return RESORT_THEMES[this.selectedResort];
+  }
+
+  get showParkLightningLanePricing(): boolean {
+    return this.selectedResort === 'wdw' && !this.favoritesMode;
+  }
+
+  parkLightningLanePrices(parkId: string): ParkLightningLanePricing | null {
+    const pricing = this.parkLightningLanePricing[parkId];
+    if (!pricing || !hasLightningLanePricePair(pricing.multiPass, pricing.premierPass)) {
+      return null;
+    }
+    return pricing;
+  }
+
+  parkLightningLaneAriaLabel(park: ParkConfig): string | null {
+    const pricing = this.parkLightningLanePrices(park.id);
+    if (!pricing) {
+      return null;
+    }
+
+    const parts: string[] = [];
+    if (pricing.multiPass) {
+      parts.push(`Multi Pass ${pricing.multiPass}`);
+    }
+    if (pricing.premierPass) {
+      parts.push(`Premier Pass ${pricing.premierPass}`);
+    }
+
+    return `Lightning Lane at ${park.shortName} today: ${parts.join(', ')}`;
   }
 
   parkTimeAriaLabel(): string {

@@ -17,6 +17,7 @@ import { AttractionViewModel } from '../../../../core/models/theme-parks.models'
 import { HistoricalDataService } from '../../../../core/services/historical-data.service';
 import { WaitTimeSnapshot } from '../../../../core/models/historical.models';
 import { WaitTrendChartComponent } from '../../../../shared/components/wait-trend-chart/wait-trend-chart.component';
+import { getParkById } from '../../../../core/constants/park.constants';
 import {
   SHOW_TIME_PREVIEW_LIMIT,
   formatAttractionTypeLabel,
@@ -28,6 +29,7 @@ import {
   getWaitTimeClass,
   isContinuousExperience,
   isPerformanceShow,
+  isRideEntity,
 } from '../../../../core/utils/attraction.utils';
 import { ClockService } from '../../../../core/services/clock.service';
 
@@ -104,6 +106,35 @@ export class AttractionCardComponent implements OnInit, OnChanges {
       !this.isContinuousExperience &&
       !!this.attraction.parkId
     );
+  }
+
+  get showLightningLanePrice(): boolean {
+    return (
+      this.isWdwRide &&
+      !!this.attraction.lightningLanePrice &&
+      !this.isPerformanceShow &&
+      !this.isContinuousExperience
+    );
+  }
+
+  get isWdwRide(): boolean {
+    const parkId = this.attraction.parkId;
+    if (!parkId) {
+      return false;
+    }
+    return getParkById(parkId)?.resort === 'wdw' && isRideEntity(this.attraction.entityType);
+  }
+
+  get lightningLaneSoldOut(): boolean {
+    return this.attraction.lightningLaneAvailable === false;
+  }
+
+  get lightningLaneAriaLabel(): string {
+    const price = this.attraction.lightningLanePrice ?? '';
+    if (this.lightningLaneSoldOut) {
+      return `Individual Lightning Lane ${price}, sold out for today`;
+    }
+    return `Individual Lightning Lane ${price}`;
   }
 
   private loadTrendData(): void {

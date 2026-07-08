@@ -75,12 +75,27 @@ export interface ParkLiveResponse {
   liveData: LiveDataItem[];
 }
 
+export interface PurchasePrice {
+  amount: number;
+  currency: string;
+  formatted: string;
+}
+
+export interface SchedulePurchase {
+  id: string;
+  name: string;
+  type: string;
+  price?: PurchasePrice;
+  available?: boolean;
+}
+
 export interface ScheduleEntry {
   date: string;
   type: string;
   openingTime?: string;
   closingTime?: string;
   description?: string;
+  purchases?: SchedulePurchase[];
 }
 
 export interface ParkScheduleResponse {
@@ -134,6 +149,9 @@ export interface AttractionViewModel {
   showtimes: Showtime[];
   operatingHours: OperatingHour[];
   isFavorite: boolean;
+  /** Disney individual Lightning Lane price (PAID_RETURN_TIME or schedule). */
+  lightningLanePrice?: string | null;
+  lightningLaneAvailable?: boolean | null;
 }
 
 export interface ParkLiveBundle {

@@ -194,11 +194,47 @@ CREATE INDEX idx_wait_snapshots_park_attraction
 
 CREATE INDEX idx_wait_snapshots_local_date
   ON wait_snapshots (local_date);
+
+CREATE TABLE ill_daily_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  park_id TEXT NOT NULL,
+  park_name TEXT NOT NULL,
+  local_date TEXT NOT NULL,
+  collected_at TEXT NOT NULL,
+  attraction_id TEXT NOT NULL,
+  attraction_name TEXT NOT NULL,
+  price_cents INTEGER NOT NULL,
+  sold_out INTEGER NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT 'live',
+  UNIQUE (park_id, local_date, attraction_id)
+);
+
+CREATE INDEX idx_ill_daily_park_date
+  ON ill_daily_snapshots (park_id, local_date);
+
+CREATE INDEX idx_ill_daily_attraction
+  ON ill_daily_snapshots (park_id, attraction_id, local_date);
+
+CREATE TABLE park_ll_daily_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  park_id TEXT NOT NULL,
+  park_name TEXT NOT NULL,
+  local_date TEXT NOT NULL,
+  collected_at TEXT NOT NULL,
+  multi_pass_cents INTEGER,
+  multi_pass_sold_out INTEGER NOT NULL DEFAULT 0,
+  premier_pass_cents INTEGER,
+  premier_pass_sold_out INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (park_id, local_date)
+);
 ```
+
+SQL files: `scripts/sql/ill_daily_snapshots.sql` and `scripts/sql/park_ll_daily_snapshots.sql`. Run against Turso before enabling the collector or frontend history views.
 
 **`collection_metadata` rows:**
 
-- `last_updated` — UTC ISO timestamp of the latest collector run
+- `last_updated` — UTC ISO timestamp of the latest wait-time collector run
+- `last_ill_collected` — UTC ISO timestamp of the latest ILL daily collector run
 - `retention_days` — days of history to keep (currently `45`)
 
 **Uniqueness:** one row per `(park_id, collected_at, attraction_id)` prevents duplicate inserts when a collection round is retried.
@@ -225,6 +261,46 @@ TURSO_AUTH_TOKEN=<read-write token>
 
 Manage the container on the \*arr host (`docker compose up -d`, logs, image updates). The compose file and collector image are maintained on that server, not in this Angular repo.
 
+### ILL daily collector (`scripts/collect_ill_daily.py`)
+
+Separate from the wait-time Docker service. Collects **end-of-day Individual Lightning Lane prices** for the four WDW parks once per evening.
+
+| Setting | Default | Location |
+|---------|---------|----------|
+| Collection window | 8 PM–11 PM ET | `scripts/parks_config.json` → `collectionHourStart` / `collectionHourEnd` |
+| Retention | 45 days | `retentionDays` in config |
+| Parks | Magic Kingdom, EPCOT, Hollywood Studios, Animal Kingdom | `wdwParks` in config |
+
+Each run:
+
+1. Skip if outside the evening window (unless `--ignore-hours` or `--force`)
+2. `ensure_schema` from both SQL files under `scripts/sql/`
+3. For each WDW park: `GET /entity/{parkId}/live` + `GET /entity/{parkId}/schedule`
+4. Upsert one row per park into `park_ll_daily_snapshots` (MLL + LLPP)
+5. Upsert one row per ILL attraction into `ill_daily_snapshots` (`sold_out` = 1 when unavailable)
+6. Set `collection_metadata.last_ill_collected` / `last_park_ll_collected` and prune old rows
+
+**Deploy on \*arr server** (separate from the wait-time Docker collector):
+
+```bash
+cd scripts
+cp env.example env.ll-collector    # Turso URL + RW token; chmod 600
+chmod +x update-ll-collector.sh
+./update-ll-collector.sh --schema-only
+./update-ll-collector.sh --test
+./update-ll-collector.sh --install-cron
+```
+
+**Test locally without server access:**
+
+```bash
+cd scripts
+export TURSO_DATABASE_URL=libsql://...
+export TURSO_AUTH_TOKEN=...
+python collect_ill_daily.py --schema-only
+python collect_ill_daily.py --ignore-hours
+```
+
 ### Frontend (Turso reads)
 
 Connection settings: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` in `park.constants.ts`.
@@ -241,6 +317,17 @@ Connection settings: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` in `park.constants
 | Manifest | `collection_metadata` + `GROUP BY park_id, local_date` on `wait_snapshots` |
 | Ride detail | `wait_snapshots` filtered by `park_id` + `attraction_id` |
 | Card sparkline | today's rows for one attraction, `collected_at >=` 6-hour cutoff |
+| Stats park LL history | `park_ll_daily_snapshots` for selected WDW park (`getParkLlHistory`) |
+| Ride detail ILL chart | `ill_daily_snapshots` for one `park_id` + `attraction_id` (`getAttractionIllHistory`) |
+
+ILL / Lightning Lane UI paths:
+
+| Path | Purpose |
+|------|---------|
+| `src/app/core/utils/ill-display.utils.ts` | ILL price formatting, sold-out labels |
+| `src/app/core/utils/lightning-lane.utils.ts` | Live MLL/LLPP/ILL from ThemeParks.wiki schedule + live data |
+| `src/app/features/dashboard/components/park-ll-stats-panel/` | Stats tab — today's Multi Pass (MLL) and Premier Pass (LLPP) with sold-out |
+| `src/app/features/ride-detail/` | ILL banner, summary stats, and daily bar chart when history exists |
 
 Turso pipeline args must be typed objects (`{ "type": "text", "value": "..." }`), not raw strings.
 
