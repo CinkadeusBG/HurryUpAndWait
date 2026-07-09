@@ -25,6 +25,7 @@ import {
   getCachedEntityMetadataMap,
   setCachedEntityMetadata,
 } from '../utils/entity-metadata-cache.utils';
+import { mergeParkLightningLanePricingWithSeenToday } from '../utils/park-ll-pricing-cache.utils';
 import {
   buildLightningLanePurchaseMap,
   getParkLightningLanePricing,
@@ -57,6 +58,11 @@ export class ThemeParksService {
   private readonly manualRefresh$ = new BehaviorSubject<void>(undefined);
 
   constructor(private readonly http: HttpClient) {}
+
+  /** Emits when the dashboard requests an immediate data refresh. */
+  refreshTick$(): Observable<void> {
+    return this.manualRefresh$.asObservable();
+  }
 
   /** Polls live + schedule data every 3 minutes with manual refresh support. */
   watchPark(parkId: string): Observable<ParkDashboardState> {
@@ -106,9 +112,14 @@ export class ThemeParksService {
                 (response) =>
                   [
                     park.id,
-                    getParkLightningLanePricing(
-                      response.schedule,
-                      response.timezone
+                    mergeParkLightningLanePricingWithSeenToday(
+                      getParkLightningLanePricing(
+                        response.schedule,
+                        response.timezone
+                      ),
+                      park.id,
+                      response.timezone,
+                      response.schedule
                     ),
                   ] as const
               ),

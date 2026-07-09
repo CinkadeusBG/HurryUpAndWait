@@ -8,6 +8,8 @@ export interface WeatherSnapshot {
   iconVariant: WeatherIconVariant;
   isDay: boolean;
   observedAt: Date;
+  /** Highest hourly precipitation probability over the next few hours. */
+  precipProbabilityNext3h: number | null;
 }
 
 export interface ResortWeatherState {
@@ -22,5 +24,9 @@ export interface OpenMeteoCurrentResponse {
     temperature_2m: number;
     weather_code: number;
     is_day: number;
+  };
+  hourly?: {
+    time: string[];
+    precipitation_probability?: Array<number | null>;
   };
 }

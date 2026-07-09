@@ -25,6 +25,10 @@ import {
   ParkLightningLanePricing,
   hasLightningLanePricePair,
 } from '../../../../core/utils/lightning-lane.utils';
+import {
+  ParkCapacityScore,
+  capacityLevelLabel,
+} from '../../../../core/utils/park-capacity.utils';
 import { ResortWeatherState } from '../../../../core/models/weather.models';
 import { WeatherService } from '../../../../core/services/weather.service';
 import {
@@ -60,6 +64,7 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   @Input({ required: true }) parks!: ParkConfig[];
   @Input() parkLightningLanePricing: Record<string, ParkLightningLanePricing> =
     {};
+  @Input() parkCapacityScores: Record<string, ParkCapacityScore> = {};
   @Input() lastRefreshed: Date | null = null;
   @Input() parkTimezone = 'America/New_York';
   @Input() favoritesMode = false;
@@ -127,6 +132,19 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
     return pricing;
   }
 
+  parkCapacityScore(parkId: string): ParkCapacityScore | null {
+    return this.parkCapacityScores[parkId] ?? null;
+  }
+
+  parkCapacityAriaLabel(park: ParkConfig): string | null {
+    const score = this.parkCapacityScore(park.id);
+    if (!score || this.favoritesMode) {
+      return null;
+    }
+
+    return `${park.shortName} crowd level: ${capacityLevelLabel(score.level)}. ${score.summary}`;
+  }
+
   parkLightningLaneAriaLabel(park: ParkConfig): string | null {
     const pricing = this.parkLightningLanePrices(park.id);
     if (!pricing) {
@@ -135,10 +153,12 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
 
     const parts: string[] = [];
     if (pricing.multiPass) {
-      parts.push(`Multi Pass ${pricing.multiPass}`);
+      const status = pricing.multiPassSoldOut ? ', sold out' : '';
+      parts.push(`Multi Pass ${pricing.multiPass}${status}`);
     }
     if (pricing.premierPass) {
-      parts.push(`Premier Pass ${pricing.premierPass}`);
+      const status = pricing.premierPassSoldOut ? ', sold out' : '';
+      parts.push(`Premier Pass ${pricing.premierPass}${status}`);
     }
 
     return `Lightning Lane at ${park.shortName} today: ${parts.join(', ')}`;

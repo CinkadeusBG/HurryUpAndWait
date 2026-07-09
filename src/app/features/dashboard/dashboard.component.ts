@@ -39,7 +39,9 @@ import {
   SortOption,
 } from '../../core/models/theme-parks.models';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { ParkCapacityService } from '../../core/services/park-capacity.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
+import { ParkCapacityScore } from '../../core/utils/park-capacity.utils';
 import {
   filterAttractions,
   isClosedSectionAttraction,
@@ -49,6 +51,7 @@ import {
   sortAttractions,
   toAttractionViewModel,
 } from '../../core/utils/attraction.utils';
+import { mergeParkLightningLanePricingWithSeenToday } from '../../core/utils/park-ll-pricing-cache.utils';
 import {
   buildLightningLanePurchaseMap,
   getParkLightningLanePricing,
@@ -94,6 +97,7 @@ const PREF_KEYS = {
 export class DashboardComponent implements OnInit {
   private readonly themeParksService = inject(ThemeParksService);
   private readonly historicalData = inject(HistoricalDataService);
+  private readonly parkCapacityService = inject(ParkCapacityService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject(ElementRef<HTMLElement>);
@@ -113,11 +117,16 @@ export class DashboardComponent implements OnInit {
   parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
   schedule: import('../../core/models/theme-parks.models').ScheduleEntry[] = [];
   parkLightningLanePricing: Record<string, ParkLightningLanePricing> = {};
+  parkCapacityScores: Record<string, ParkCapacityScore> = {};
   sparklineTrends: Record<string, WaitTimeSnapshot[]> = {};
   sparklineLastWaits: Record<string, WaitTimeSnapshot> = {};
 
   private readonly parkId$ = new BehaviorSubject<string>(this.selectedParkId);
+  private readonly selectedResort$ = new BehaviorSubject<ResortId>(this.selectedResort);
   private readonly favoritesMode$ = new BehaviorSubject<boolean>(this.favoritesMode);
+  private readonly parkLightningLanePricing$ = new BehaviorSubject<
+    Record<string, ParkLightningLanePricing>
+  >({});
   private readonly sparklineParkIds$ = new BehaviorSubject<string[]>([]);
   private allAttractions: AttractionViewModel[] = [];
 
@@ -167,6 +176,21 @@ export class DashboardComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((pricing) => {
         this.parkLightningLanePricing = pricing;
+        this.parkLightningLanePricing$.next(pricing);
+      });
+
+    this.selectedResort$
+      .pipe(
+        switchMap((resort) =>
+          this.parkCapacityService.watchResortParkCapacity(
+            resort,
+            this.parkLightningLanePricing$
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((scores) => {
+        this.parkCapacityScores = scores;
       });
 
     combineLatest([
@@ -238,6 +262,7 @@ export class DashboardComponent implements OnInit {
 
   onResortChange(resort: ResortId): void {
     this.selectedResort = resort;
+    this.selectedResort$.next(resort);
     localStorage.setItem(PREF_KEYS.resort, resort);
 
     const resortParks = getParksForResort(resort);
@@ -321,9 +346,15 @@ export class DashboardComponent implements OnInit {
       this.parkLightningLanePricing = Object.fromEntries(
         state.parks.map((park) => [
           park.parkId,
-          getParkLightningLanePricing(park.schedule, park.timezone),
+          mergeParkLightningLanePricingWithSeenToday(
+            getParkLightningLanePricing(park.schedule, park.timezone),
+            park.parkId,
+            park.timezone,
+            park.schedule
+          ),
         ])
       );
+      this.parkLightningLanePricing$.next(this.parkLightningLanePricing);
       this.sparklineParkIds$.next(state.parks.map((park) => park.parkId));
       this.allAttractions = state.parks.flatMap((park) =>
         this.buildAttractionsFromPark(park, true)

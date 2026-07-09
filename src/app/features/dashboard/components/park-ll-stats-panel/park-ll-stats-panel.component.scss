@@ -33,11 +33,23 @@
   font-weight: 600;
 }
 
+.ll-stat-card > .ll-stat-value {
+  margin-top: 0.35rem;
+}
+
+.ll-stat-value-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
 .ll-stat-value {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  margin: 0.35rem 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-size: 1.45rem;
   font-weight: 800;
@@ -70,7 +82,6 @@
 
 .sold-out-pill {
   display: inline-block;
-  margin-top: 0.35rem;
   padding: 0.08rem 0.4rem;
   border-radius: var(--radius-pill);
   font-size: 0.62rem;
@@ -82,10 +93,15 @@
   border: 1px solid rgba(248, 113, 113, 0.45);
 
   &.table-pill {
-    margin-top: 0;
-    margin-left: 0.3rem;
-    vertical-align: middle;
+    margin: 0;
   }
+}
+
+.price-cell {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .history-title {

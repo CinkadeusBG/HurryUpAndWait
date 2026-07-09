@@ -52,6 +52,8 @@ export class WeatherService {
       .set('latitude', location.latitude)
       .set('longitude', location.longitude)
       .set('current', 'temperature_2m,weather_code,is_day')
+      .set('hourly', 'precipitation_probability')
+      .set('forecast_hours', '6')
       .set('temperature_unit', 'fahrenheit')
       .set('timezone', location.timezone);
 
@@ -77,6 +79,11 @@ export class WeatherService {
             iconVariant,
             isDay: response.current.is_day === 1,
             observedAt: new Date(response.current.time),
+            precipProbabilityNext3h: resolvePrecipProbabilityNext3h(
+              response.current.time,
+              response.hourly?.time ?? [],
+              response.hourly?.precipitation_probability ?? []
+            ),
           };
 
           return {
@@ -96,4 +103,32 @@ export class WeatherService {
 
     return showInitialLoading ? request$.pipe(startWith(emptyState)) : request$;
   }
+}
+
+function resolvePrecipProbabilityNext3h(
+  currentTime: string,
+  hourlyTimes: string[],
+  probabilities: Array<number | null>
+): number | null {
+  if (!hourlyTimes.length || !probabilities.length) {
+    return null;
+  }
+
+  const currentMs = new Date(currentTime).getTime();
+  const horizonMs = currentMs + 3 * 60 * 60 * 1000;
+  const values: number[] = [];
+
+  for (let index = 0; index < hourlyTimes.length; index++) {
+    const hourMs = new Date(hourlyTimes[index]).getTime();
+    if (hourMs < currentMs || hourMs > horizonMs) {
+      continue;
+    }
+
+    const probability = probabilities[index];
+    if (typeof probability === 'number' && Number.isFinite(probability)) {
+      values.push(probability);
+    }
+  }
+
+  return values.length ? Math.max(...values) : null;
 }

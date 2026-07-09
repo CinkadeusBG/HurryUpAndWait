@@ -21,7 +21,12 @@ import {
   WaitTimeSnapshot,
 } from '../models/historical.models';
 import { averageIllPriceCents } from '../utils/ill-display.utils';
+import { getComparableLocalDatesForCapacity } from '../utils/park-capacity.utils';
 import { TursoClientService, type TursoRow } from './turso-client.service';
+
+export interface ParkCapacityHistoryRow extends WaitTimeSnapshot {
+  parkId: string;
+}
 
 const SNAPSHOT_SELECT = `
   SELECT
@@ -89,6 +94,10 @@ export class HistoricalDataService {
   private readonly parkIllCache = new Map<string, Observable<ParkIllAttractionSummary[]>>();
   private readonly parkLlCache = new Map<string, Observable<ParkLlDailySnapshot[]>>();
   private readonly attractionIllCache = new Map<string, Observable<IllDailySnapshot[]>>();
+  private readonly parkCapacityHistoryCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<ParkCapacityHistoryRow[]> }
+  >();
 
   getManifest(): Observable<DataManifest> {
     const cacheKey = 'manifest';
@@ -265,6 +274,34 @@ export class HistoricalDataService {
       shareReplay(1)
     );
     this.parkLastKnownWaitsCache.set(cacheKey, { cachedAt: now, request$ });
+    return request$;
+  }
+
+  /** Recent + same-day-of-week history rows used for park crowd scoring. */
+  getParkCapacityHistoryRows(
+    parkIds: string[],
+    timezone: string
+  ): Observable<ParkCapacityHistoryRow[]> {
+    const normalizedIds = [...new Set(parkIds.filter(Boolean))].sort();
+    if (!normalizedIds.length) {
+      return of([]);
+    }
+
+    const cacheKey = `${normalizedIds.join('|')}:${timezone}`;
+    const cached = this.parkCapacityHistoryCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
+    }
+
+    const request$ = from(
+      this.loadParkCapacityHistoryRows(normalizedIds, timezone)
+    ).pipe(
+      catchError(() => of([])),
+      shareReplay(1)
+    );
+    this.parkCapacityHistoryCache.set(cacheKey, { cachedAt: now, request$ });
     return request$;
   }
 
@@ -508,6 +545,45 @@ export class HistoricalDataService {
     }
 
     return grouped;
+  }
+
+  private async loadParkCapacityHistoryRows(
+    parkIds: string[],
+    timezone: string
+  ): Promise<ParkCapacityHistoryRow[]> {
+    const comparableDates = getComparableLocalDatesForCapacity(timezone);
+    const trendCutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    const parkPlaceholders = parkIds.map(() => '?').join(', ');
+    const datePlaceholders = comparableDates.map(() => '?').join(', ');
+    const whereDates = comparableDates.length
+      ? `OR local_date IN (${datePlaceholders})`
+      : '';
+
+    const rows = await this.turso.query(
+      `SELECT
+         park_id AS parkId,
+         collected_at AS timestamp,
+         attraction_id AS attractionId,
+         attraction_name AS name,
+         status,
+         wait_time AS waitTime,
+         entity_type AS entityType
+       FROM wait_snapshots
+       WHERE park_id IN (${parkPlaceholders})
+         AND status = 'OPERATING'
+         AND wait_time IS NOT NULL
+         AND entity_type = 'ATTRACTION'
+         AND (
+           collected_at >= ?
+           ${whereDates}
+         )`,
+      [...parkIds, trendCutoff, ...comparableDates]
+    );
+
+    return rows.map((row) => ({
+      ...this.mapSnapshotRow(row),
+      parkId: String(row['parkId']),
+    }));
   }
 
   private async loadRecentTrend(

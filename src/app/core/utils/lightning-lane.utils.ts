@@ -49,6 +49,52 @@ export function getTodayOperatingScheduleEntry(
   return schedule.find((entry) => entry.date === today && entry.type === 'OPERATING');
 }
 
+function findScheduledParkProductPrice(
+  schedule: ScheduleEntry[],
+  timezone: string,
+  idPrefix: string,
+  afterDate?: string
+): string | null {
+  const cutoff = afterDate ?? formatParkDateKey(timezone);
+  const operatingEntries = schedule
+    .filter((entry) => entry.type === 'OPERATING' && entry.date > cutoff)
+    .sort((left, right) => left.date.localeCompare(right.date));
+
+  for (const entry of operatingEntries) {
+    const purchase = entry.purchases?.find((row) => row.id.startsWith(idPrefix));
+    const price = formatLightningLanePriceRounded(purchase?.price);
+    if (price) {
+      return price;
+    }
+  }
+
+  return null;
+}
+
+/** Next future OPERATING day's Premier Pass price (when today's row is missing). */
+export function findNextScheduledPremierPassPrice(
+  schedule: ScheduleEntry[],
+  timezone: string
+): string | null {
+  return findScheduledParkProductPrice(
+    schedule,
+    timezone,
+    PREMIER_PASS_ID_PREFIX
+  );
+}
+
+/** Next future OPERATING day's Multi Pass price (when today's row is missing). */
+export function findNextScheduledMultiPassPrice(
+  schedule: ScheduleEntry[],
+  timezone: string
+): string | null {
+  return findScheduledParkProductPrice(
+    schedule,
+    timezone,
+    MULTI_PASS_ID_PREFIX
+  );
+}
+
 /** Park-level Lightning Lane Multi Pass and Premier Pass prices for today. */
 export function getParkLightningLanePricing(
   schedule: ScheduleEntry[],

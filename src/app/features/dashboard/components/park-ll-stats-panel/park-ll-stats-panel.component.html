@@ -13,13 +13,16 @@
         <article class="ll-stat-card">
           <p class="ll-stat-label">Multi Pass (MLL)</p>
           @if (pricing.multiPass) {
-            <p class="ll-stat-value" [class.is-sold-out]="pricing.multiPassSoldOut">
-              <i class="pi pi-bolt" aria-hidden="true"></i>
-              {{ pricing.multiPass }}
-            </p>
-            @if (pricing.multiPassSoldOut) {
-              <span class="sold-out-pill">Sold out</span>
-            } @else {
+            <div class="ll-stat-value-row">
+              <p class="ll-stat-value" [class.is-sold-out]="pricing.multiPassSoldOut">
+                <i class="pi pi-bolt" aria-hidden="true"></i>
+                {{ pricing.multiPass }}
+              </p>
+              @if (pricing.multiPassSoldOut) {
+                <span class="sold-out-pill">Sold out</span>
+              }
+            </div>
+            @if (!pricing.multiPassSoldOut) {
               <p class="ll-stat-hint">Available today</p>
             }
           } @else {
@@ -31,13 +34,16 @@
         <article class="ll-stat-card">
           <p class="ll-stat-label">Premier Pass (LLPP)</p>
           @if (pricing.premierPass) {
-            <p class="ll-stat-value" [class.is-sold-out]="pricing.premierPassSoldOut">
-              <i class="pi pi-bolt" aria-hidden="true"></i>
-              {{ pricing.premierPass }}
-            </p>
-            @if (pricing.premierPassSoldOut) {
-              <span class="sold-out-pill">Sold out</span>
-            } @else {
+            <div class="ll-stat-value-row">
+              <p class="ll-stat-value" [class.is-sold-out]="pricing.premierPassSoldOut">
+                <i class="pi pi-bolt" aria-hidden="true"></i>
+                {{ pricing.premierPass }}
+              </p>
+              @if (pricing.premierPassSoldOut) {
+                <span class="sold-out-pill">Sold out</span>
+              }
+            </div>
+            @if (!pricing.premierPassSoldOut) {
               <p class="ll-stat-hint">Available today</p>
             }
           } @else {
@@ -72,26 +78,30 @@
                 <td>{{ row.dateLabel }}</td>
                 <td>
                   @if (row.multiPass) {
-                    <span class="price-chip" [class.is-sold-out]="row.multiPassSoldOut">
-                      <i class="pi pi-bolt" aria-hidden="true"></i>
-                      {{ row.multiPass }}
-                    </span>
-                    @if (row.multiPassSoldOut) {
-                      <span class="sold-out-pill table-pill">Sold out</span>
-                    }
+                    <div class="price-cell">
+                      <span class="price-chip" [class.is-sold-out]="row.multiPassSoldOut">
+                        <i class="pi pi-bolt" aria-hidden="true"></i>
+                        {{ row.multiPass }}
+                      </span>
+                      @if (row.multiPassSoldOut) {
+                        <span class="sold-out-pill table-pill">Sold out</span>
+                      }
+                    </div>
                   } @else {
                     <span class="muted">—</span>
                   }
                 </td>
                 <td>
                   @if (row.premierPass) {
-                    <span class="price-chip" [class.is-sold-out]="row.premierPassSoldOut">
-                      <i class="pi pi-bolt" aria-hidden="true"></i>
-                      {{ row.premierPass }}
-                    </span>
-                    @if (row.premierPassSoldOut) {
-                      <span class="sold-out-pill table-pill">Sold out</span>
-                    }
+                    <div class="price-cell">
+                      <span class="price-chip" [class.is-sold-out]="row.premierPassSoldOut">
+                        <i class="pi pi-bolt" aria-hidden="true"></i>
+                        {{ row.premierPass }}
+                      </span>
+                      @if (row.premierPassSoldOut) {
+                        <span class="sold-out-pill table-pill">Sold out</span>
+                      }
+                    </div>
                   } @else {
                     <span class="muted">—</span>
                   }

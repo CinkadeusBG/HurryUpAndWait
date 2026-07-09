@@ -153,12 +153,12 @@
   }
 
   .dashboard {
-    max-width: 1100px;
+    max-width: var(--page-max-width);
     margin: 0 auto;
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1130px) {
   .attraction-grid,
   .skeleton-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -279,6 +279,33 @@
   }
 }
 
+.capacity-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.capacity-low {
+    background: #4ade80;
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.18);
+  }
+
+  &.capacity-moderate {
+    background: #facc15;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.18);
+  }
+
+  &.capacity-high {
+    background: #f87171;
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
+  }
+
+  &.capacity-unknown {
+    background: rgba(148, 163, 184, 0.85);
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.16);
+  }
+}
+
 .park-chip-label {
   line-height: 1.1;
 }
@@ -306,6 +333,13 @@
 
 .lightning-lane-pricing-values {
   line-height: 1.1;
+
+  .is-sold-out {
+    text-decoration: line-through;
+    text-decoration-color: #f87171;
+    text-decoration-thickness: 2px;
+    opacity: 0.85;
+  }
 }
 
 .park-chip.has-lightning-lane-pricing {

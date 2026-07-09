@@ -134,6 +134,17 @@
             (click)="onParkSelect(park.id)"
           >
             <app-park-icon [emoji]="park.emoji"></app-park-icon>
+            @if (parkCapacityScore(park.id); as capacity) {
+              <span
+                class="capacity-dot"
+                [class.capacity-low]="capacity.level === 'low'"
+                [class.capacity-moderate]="capacity.level === 'moderate'"
+                [class.capacity-high]="capacity.level === 'high'"
+                [class.capacity-unknown]="capacity.level === 'unknown'"
+                [attr.aria-label]="parkCapacityAriaLabel(park) ?? undefined"
+                [attr.title]="parkCapacityAriaLabel(park) ?? undefined"
+              ></span>
+            }
             <span class="park-chip-label">{{ park.shortName }}</span>
             @if (showParkLightningLanePricing && parkLightningLanePrices(park.id); as pricing) {
               <span
@@ -142,7 +153,13 @@
               >
                 <i class="pi pi-bolt" aria-hidden="true"></i>
                 <span class="lightning-lane-pricing-values">
-                  {{ pricing.multiPass ?? '—' }} / {{ pricing.premierPass ?? '—' }}
+                  <span [class.is-sold-out]="pricing.multiPassSoldOut">
+                    {{ pricing.multiPass ?? '—' }}
+                  </span>
+                  /
+                  <span [class.is-sold-out]="pricing.premierPassSoldOut">
+                    {{ pricing.premierPass ?? '—' }}
+                  </span>
                 </span>
               </span>
             }
