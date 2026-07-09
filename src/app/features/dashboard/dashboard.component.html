@@ -5,6 +5,7 @@
     [parks]="parks"
     [parkLightningLanePricing]="parkLightningLanePricing"
     [parkCapacityScores]="parkCapacityScores"
+    [parkOpenByPark]="parkOpenByPark"
     [lastRefreshed]="lastRefreshed"
     [parkTimezone]="parkTimezone"
     [favoritesMode]="favoritesMode"
@@ -80,6 +81,8 @@
       <app-quick-stats-panel
         [openAttractions]="openAttractions"
         [closedCount]="closedAttractions.length"
+        [parkCapacityScore]="parkCapacityScores[selectedParkId]"
+        [parkIsOpen]="parkOpenByPark[selectedParkId]"
       ></app-quick-stats-panel>
       <app-park-ll-stats-panel
         [parkId]="selectedParkId"

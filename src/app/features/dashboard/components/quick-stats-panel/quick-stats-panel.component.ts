@@ -1,5 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { AttractionViewModel } from '../../../../core/models/theme-parks.models';
+import {
+  ParkCapacityScore,
+  capacityLevelShortLabel,
+} from '../../../../core/utils/park-capacity.utils';
 
 interface QuickStat {
   label: string;
@@ -18,6 +22,8 @@ interface QuickStat {
 export class QuickStatsPanelComponent {
   @Input({ required: true }) openAttractions: AttractionViewModel[] = [];
   @Input({ required: true }) closedCount = 0;
+  @Input() parkCapacityScore: ParkCapacityScore | null = null;
+  @Input() parkIsOpen = false;
 
   get stats(): QuickStat[] {
     const rides = this.openAttractions.filter((item) => item.entityType === 'ATTRACTION');
@@ -36,6 +42,7 @@ export class QuickStatsPanelComponent {
     const under15 = waits.filter((wait) => wait < 15).length;
 
     return [
+      this.projectedCrowdStat,
       {
         label: 'Open attractions',
         value: `${operatingRides.length}`,
@@ -80,5 +87,47 @@ export class QuickStatsPanelComponent {
         tone: 'tone-fast',
       },
     ];
+  }
+
+  private get projectedCrowdStat(): QuickStat {
+    if (!this.parkIsOpen) {
+      return {
+        label: 'Projected crowd',
+        value: 'Closed',
+        icon: 'pi pi-users',
+        tone: 'tone-closed',
+      };
+    }
+
+    const score = this.parkCapacityScore;
+    if (!score) {
+      return {
+        label: 'Projected crowd',
+        value: '—',
+        icon: 'pi pi-users',
+        tone: 'tone-crowd-unknown',
+      };
+    }
+
+    return {
+      label: 'Projected crowd',
+      value: capacityLevelShortLabel(score.level),
+      hint: score.summary,
+      icon: 'pi pi-users',
+      tone: this.crowdToneForLevel(score.level),
+    };
+  }
+
+  private crowdToneForLevel(level: ParkCapacityScore['level']): string {
+    switch (level) {
+      case 'low':
+        return 'tone-crowd-low';
+      case 'moderate':
+        return 'tone-crowd-moderate';
+      case 'high':
+        return 'tone-crowd-high';
+      default:
+        return 'tone-crowd-unknown';
+    }
   }
 }

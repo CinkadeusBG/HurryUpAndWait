@@ -1,4 +1,4 @@
-import { LiveDataItem } from '../models/theme-parks.models';
+import { LiveDataItem, ScheduleEntry } from '../models/theme-parks.models';
 import { WaitTimeSnapshot } from '../models/historical.models';
 import {
   ParkLightningLanePricing,
@@ -518,4 +518,43 @@ export function capacityLevelLabel(level: ParkCapacityLevel): string {
     default:
       return 'Crowd level unknown';
   }
+}
+
+export function capacityLevelShortLabel(level: ParkCapacityLevel): string {
+  switch (level) {
+    case 'low':
+      return 'Light';
+    case 'moderate':
+      return 'Moderate';
+    case 'high':
+      return 'Heavy';
+    default:
+      return 'Unknown';
+  }
+}
+
+/** True when today's OPERATING schedule window includes the current moment. */
+export function isParkOpenNow(
+  schedule: ScheduleEntry[],
+  timezone: string,
+  now = Date.now()
+): boolean {
+  const today = formatParkDateKey(timezone, now);
+  const operating = schedule.find(
+    (entry) => entry.date === today && entry.type === 'OPERATING'
+  );
+
+  if (!operating?.openingTime || !operating?.closingTime) {
+    return false;
+  }
+
+  const start = new Date(operating.openingTime).getTime();
+  const end = new Date(operating.closingTime).getTime();
+
+  return (
+    Number.isFinite(start) &&
+    Number.isFinite(end) &&
+    now >= start &&
+    now < end
+  );
 }

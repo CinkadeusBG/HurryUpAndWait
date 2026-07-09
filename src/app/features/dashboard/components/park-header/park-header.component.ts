@@ -65,6 +65,7 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   @Input() parkLightningLanePricing: Record<string, ParkLightningLanePricing> =
     {};
   @Input() parkCapacityScores: Record<string, ParkCapacityScore> = {};
+  @Input() parkOpenByPark: Record<string, boolean> = {};
   @Input() lastRefreshed: Date | null = null;
   @Input() parkTimezone = 'America/New_York';
   @Input() favoritesMode = false;
@@ -133,6 +134,10 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   }
 
   parkCapacityScore(parkId: string): ParkCapacityScore | null {
+    if (!this.parkOpenByPark[parkId]) {
+      return null;
+    }
+
     return this.parkCapacityScores[parkId] ?? null;
   }
 

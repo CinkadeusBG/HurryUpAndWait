@@ -19,6 +19,7 @@ import {
   ResortId,
   getParksForResort,
 } from '../constants/park.constants';
+import { ScheduleEntry } from '../models/theme-parks.models';
 import { ParkLightningLanePricing } from '../utils/lightning-lane.utils';
 import {
   ParkCapacityScore,
@@ -26,7 +27,13 @@ import {
   buildParkCapacityHistoryContext,
   computeParkCapacityScore,
   groupCapacityHistoryByPark,
+  isParkOpenNow,
 } from '../utils/park-capacity.utils';
+
+export interface ResortParkCapacityState {
+  scores: Record<string, ParkCapacityScore>;
+  openByPark: Record<string, boolean>;
+}
 import { HistoricalDataService } from './historical-data.service';
 import { ThemeParksService } from './theme-parks.service';
 import { WeatherService } from './weather.service';
@@ -41,21 +48,22 @@ export class ParkCapacityService {
     Observable<ResortParkCapacityBundle>
   >();
 
-  /** Live crowd indicators per park for the selected resort. */
+  /** Live crowd indicators and open/closed state per park for the selected resort. */
   watchResortParkCapacity(
     resort: ResortId,
     parkLightningLanePricing$: Observable<Record<string, ParkLightningLanePricing>> = of(
       {}
     )
-  ): Observable<Record<string, ParkCapacityScore>> {
+  ): Observable<ResortParkCapacityState> {
     return combineLatest([
       this.watchResortParkCapacityBundle(resort),
       parkLightningLanePricing$.pipe(
         startWith({} as Record<string, ParkLightningLanePricing>)
       ),
+      interval(30_000).pipe(startWith(0)),
     ]).pipe(
-      map(([bundle, pricing]) =>
-        Object.fromEntries(
+      map(([bundle, pricing]) => ({
+        scores: Object.fromEntries(
           Object.entries(bundle.liveByPark).map(([parkId, liveData]) => [
             parkId,
             computeParkCapacityScore({
@@ -69,8 +77,16 @@ export class ParkCapacityService {
               lightningLanePricing: pricing[parkId] ?? null,
             }),
           ])
-        )
-      )
+        ),
+        openByPark: Object.fromEntries(
+          Object.entries(bundle.schedulesByPark).map(
+            ([parkId, { schedule, timezone }]) => [
+              parkId,
+              isParkOpenNow(schedule, timezone),
+            ]
+          )
+        ),
+      }))
     );
   }
 
@@ -104,6 +120,24 @@ export class ParkCapacityService {
                 )
               )
             ),
+            schedules: forkJoin(
+              parks.map((park) =>
+                this.themeParksService.getSchedule(park.id).pipe(
+                  map((response) => ({
+                    parkId: park.id,
+                    schedule: response.schedule,
+                    timezone: response.timezone,
+                  })),
+                  catchError(() =>
+                    of({
+                      parkId: park.id,
+                      schedule: [] as ScheduleEntry[],
+                      timezone,
+                    })
+                  )
+                )
+              )
+            ),
             history: this.historicalData.getParkCapacityHistoryRows(
               parkIds,
               timezone
@@ -116,12 +150,18 @@ export class ParkCapacityService {
             ),
           })
         ),
-        map(({ live, history, weather }) => ({
+        map(({ live, schedules, history, weather }) => ({
           timezone,
           weather: toCapacityWeatherContext(weather),
           historyByPark: groupCapacityHistoryByPark(history),
           liveByPark: Object.fromEntries(
             live.map(({ parkId, liveData }) => [parkId, liveData])
+          ),
+          schedulesByPark: Object.fromEntries(
+            schedules.map(({ parkId, schedule, timezone: parkTimezone }) => [
+              parkId,
+              { schedule, timezone: parkTimezone },
+            ])
           ),
         })),
         shareReplay({ bufferSize: 1, refCount: true })
@@ -139,6 +179,10 @@ interface ResortParkCapacityBundle {
   weather: ParkCapacityWeatherContext | null;
   historyByPark: ReturnType<typeof groupCapacityHistoryByPark>;
   liveByPark: Record<string, import('../models/theme-parks.models').LiveDataItem[]>;
+  schedulesByPark: Record<
+    string,
+    { schedule: ScheduleEntry[]; timezone: string }
+  >;
 }
 
 function toCapacityWeatherContext(

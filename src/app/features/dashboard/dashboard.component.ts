@@ -118,6 +118,7 @@ export class DashboardComponent implements OnInit {
   schedule: import('../../core/models/theme-parks.models').ScheduleEntry[] = [];
   parkLightningLanePricing: Record<string, ParkLightningLanePricing> = {};
   parkCapacityScores: Record<string, ParkCapacityScore> = {};
+  parkOpenByPark: Record<string, boolean> = {};
   sparklineTrends: Record<string, WaitTimeSnapshot[]> = {};
   sparklineLastWaits: Record<string, WaitTimeSnapshot> = {};
 
@@ -189,8 +190,9 @@ export class DashboardComponent implements OnInit {
         ),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((scores) => {
+      .subscribe(({ scores, openByPark }) => {
         this.parkCapacityScores = scores;
+        this.parkOpenByPark = openByPark;
       });
 
     combineLatest([
@@ -451,6 +453,7 @@ export class DashboardComponent implements OnInit {
     this.lastRefreshed = null;
     this.parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
     this.schedule = [];
+    this.parkOpenByPark = {};
     this.sparklineTrends = {};
     this.sparklineLastWaits = {};
     this.sparklineParkIds$.next([]);
