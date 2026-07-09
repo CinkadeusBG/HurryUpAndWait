@@ -266,6 +266,7 @@ export class DashboardComponent implements OnInit {
     this.selectedResort = resort;
     this.selectedResort$.next(resort);
     localStorage.setItem(PREF_KEYS.resort, resort);
+    this.clearResortCapacityState();
 
     const resortParks = getParksForResort(resort);
     if (!resortParks.some((park) => park.id === this.selectedParkId)) {
@@ -446,6 +447,11 @@ export class DashboardComponent implements OnInit {
     return localStorage.getItem(PREF_KEYS.favoritesMode) === 'true';
   }
 
+  private clearResortCapacityState(): void {
+    this.parkOpenByPark = {};
+    this.parkCapacityScores = {};
+  }
+
   private resetForNewDataSource(): void {
     this.allAttractions = [];
     this.loading = true;
@@ -453,7 +459,6 @@ export class DashboardComponent implements OnInit {
     this.lastRefreshed = null;
     this.parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
     this.schedule = [];
-    this.parkOpenByPark = {};
     this.sparklineTrends = {};
     this.sparklineLastWaits = {};
     this.sparklineParkIds$.next([]);
