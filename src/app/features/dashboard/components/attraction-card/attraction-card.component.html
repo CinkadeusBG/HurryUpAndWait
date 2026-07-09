@@ -124,11 +124,24 @@
         }
       </div>
     } @else {
-      <div class="wait-block" [class]="waitClass" [class.is-unavailable]="!isOpen">
-        @if (isOpen && attraction.waitTime !== null) {
-          <span class="wait-unit">min</span>
+      <div
+        class="wait-block"
+        [class]="waitClass"
+        [class.is-unavailable]="!isOpen"
+        [class.wait-block-down]="showDownWaitDetail || showNotOpenedYet"
+      >
+        @if (showDownWaitDetail) {
+          <span class="down-status-title">Down</span>
+          <span class="down-since-line">Since {{ downSinceLabel }}</span>
+          <span class="down-duration-line">{{ downDurationLabel }}</span>
+        } @else if (showNotOpenedYet) {
+          <span class="not-opened-yet-title">Not opened yet</span>
+        } @else {
+          @if (isOpen && attraction.waitTime !== null) {
+            <span class="wait-unit">min</span>
+          }
+          <span class="wait-value" [class.is-fading]="waitValueFading">{{ displayedWaitValue }}</span>
         }
-        <span class="wait-value" [class.is-fading]="waitValueFading">{{ displayedWaitValue }}</span>
       </div>
     }
   </div>

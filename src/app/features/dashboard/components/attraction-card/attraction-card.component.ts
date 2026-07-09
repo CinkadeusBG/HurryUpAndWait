@@ -14,14 +14,16 @@ import { RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { AttractionViewModel } from '../../../../core/models/theme-parks.models';
-import { HistoricalDataService } from '../../../../core/services/historical-data.service';
 import { WaitTimeSnapshot } from '../../../../core/models/historical.models';
 import { WaitTrendChartComponent } from '../../../../shared/components/wait-trend-chart/wait-trend-chart.component';
 import { getParkById } from '../../../../core/constants/park.constants';
 import {
   SHOW_TIME_PREVIEW_LIMIT,
   formatAttractionTypeLabel,
+  formatDownDuration,
+  formatDownSinceTime,
   formatEntityTypeLabel,
+  isLocalDateToday,
   getEntityTypeIcon,
   formatWaitTime,
   getRelevantOperatingHoursLabel,
@@ -32,6 +34,10 @@ import {
   isRideEntity,
 } from '../../../../core/utils/attraction.utils';
 import { ClockService } from '../../../../core/services/clock.service';
+import {
+  SPARKLINE_MIN_POINTS,
+  hasChartWaitValue,
+} from '../../../../core/utils/chart.utils';
 
 @Component({
   selector: 'app-attraction-card',
@@ -47,16 +53,16 @@ import { ClockService } from '../../../../core/services/clock.service';
 })
 export class AttractionCardComponent implements OnInit, OnChanges {
   private readonly clock = inject(ClockService);
-  private readonly historicalData = inject(HistoricalDataService);
   private readonly destroyRef = inject(DestroyRef);
 
   @Input({ required: true }) attraction!: AttractionViewModel;
   @Input() showParkName = false;
   @Input() parkTimezone = 'America/New_York';
+  @Input() trendEntries: WaitTimeSnapshot[] = [];
+  @Input() lastKnownWait: WaitTimeSnapshot | null = null;
   @Output() favoriteToggle = new EventEmitter<string>();
 
   readonly showTimePreviewLimit = SHOW_TIME_PREVIEW_LIMIT;
-  trendEntries: WaitTimeSnapshot[] = [];
   displayedWaitValue = '';
   waitValueFading = false;
   private uiTick = 0;
@@ -88,7 +94,6 @@ export class AttractionCardComponent implements OnInit, OnChanges {
       this.syncDisplayedWait(
         !changes['attraction'].firstChange && !isNewAttraction
       );
-      this.loadTrendData();
     }
   }
 
@@ -101,10 +106,12 @@ export class AttractionCardComponent implements OnInit, OnChanges {
   }
 
   get showTrendChart(): boolean {
+    const chartablePoints = this.trendEntries.filter(hasChartWaitValue).length;
     return (
       !this.isPerformanceShow &&
       !this.isContinuousExperience &&
-      !!this.attraction.parkId
+      !!this.attraction.parkId &&
+      chartablePoints >= SPARKLINE_MIN_POINTS
     );
   }
 
@@ -137,19 +144,36 @@ export class AttractionCardComponent implements OnInit, OnChanges {
     return `Individual Lightning Lane ${price}`;
   }
 
-  private loadTrendData(): void {
-    const parkId = this.attraction.parkId;
-    if (!parkId) {
-      this.trendEntries = [];
-      return;
-    }
+  get showDownWaitDetail(): boolean {
+    return (
+      this.isDown &&
+      !!this.lastKnownWait &&
+      isLocalDateToday(this.lastKnownWait.timestamp, this.parkTimezone)
+    );
+  }
 
-    this.historicalData
-      .getRecentTrend(parkId, this.attraction.id, 6)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((entries) => {
-        this.trendEntries = entries;
-      });
+  get showNotOpenedYet(): boolean {
+    return (
+      this.isDown &&
+      !!this.lastKnownWait &&
+      !isLocalDateToday(this.lastKnownWait.timestamp, this.parkTimezone)
+    );
+  }
+
+  get downSinceLabel(): string {
+    void this.uiTick;
+    if (!this.lastKnownWait) {
+      return '';
+    }
+    return formatDownSinceTime(this.lastKnownWait.timestamp, this.parkTimezone);
+  }
+
+  get downDurationLabel(): string {
+    void this.uiTick;
+    if (!this.lastKnownWait) {
+      return '';
+    }
+    return formatDownDuration(this.lastKnownWait.timestamp);
   }
 
   get isContinuousExperience(): boolean {

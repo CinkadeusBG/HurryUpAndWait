@@ -20,6 +20,7 @@ import {
   REFRESH_INTERVAL_MS,
   getParksForResort,
 } from '../constants/park.constants';
+import { shouldFetchEntityMetadata } from '../utils/attraction.utils';
 import {
   getParkLightningLanePricing,
   type ParkLightningLanePricing,
@@ -140,23 +141,28 @@ export class ThemeParksService {
   getEntityMetadataMap(
     liveData: LiveDataItem[]
   ): Observable<Record<string, EntityMetadata>> {
-    const ids = [
+    const metadata: Record<string, EntityMetadata> = {};
+
+    for (const item of liveData) {
+      if (item.entityType === 'SHOW' && item.externalId) {
+        metadata[item.id] = { externalId: item.externalId };
+      }
+    }
+
+    const attractionIds = [
       ...new Set(
         liveData
-          .filter(
-            (item) =>
-              item.entityType === 'ATTRACTION' || item.entityType === 'SHOW'
-          )
+          .filter((item) => shouldFetchEntityMetadata(item))
           .map((item) => item.id)
       ),
     ];
 
-    if (!ids.length) {
-      return of({});
+    if (!attractionIds.length) {
+      return of(metadata);
     }
 
     return forkJoin(
-      ids.map((id) =>
+      attractionIds.map((id) =>
         this.getEntityCached(id).pipe(
           map(
             (entity): [string, EntityMetadata] => [
@@ -170,7 +176,12 @@ export class ThemeParksService {
           catchError(() => of<[string, EntityMetadata]>([id, {}]))
         )
       )
-    ).pipe(map((entries) => Object.fromEntries(entries)));
+    ).pipe(
+      map((entries) => ({
+        ...metadata,
+        ...Object.fromEntries(entries),
+      }))
+    );
   }
 
   private getEntityCached(entityId: string): Observable<EntityDetail> {

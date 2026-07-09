@@ -9,6 +9,7 @@ import {
 import {
   getParkById,
   HISTORICAL_DATA_RETENTION_DAYS,
+  REFRESH_INTERVAL_MS,
 } from '../constants/park.constants';
 import {
   AttractionHistoryBundle,
@@ -69,7 +70,22 @@ export class HistoricalDataService {
     string,
     Observable<AttractionHistoryBundle>
   >();
-  private readonly recentTrendCache = new Map<string, Observable<WaitTimeSnapshot[]>>();
+  private readonly recentTrendCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<WaitTimeSnapshot[]> }
+  >();
+  private readonly lastKnownWaitCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<WaitTimeSnapshot | null> }
+  >();
+  private readonly parkSparklineTrendsCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<Record<string, WaitTimeSnapshot[]>> }
+  >();
+  private readonly parkLastKnownWaitsCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<Record<string, WaitTimeSnapshot>> }
+  >();
   private readonly parkIllCache = new Map<string, Observable<ParkIllAttractionSummary[]>>();
   private readonly parkLlCache = new Map<string, Observable<ParkLlDailySnapshot[]>>();
   private readonly attractionIllCache = new Map<string, Observable<IllDailySnapshot[]>>();
@@ -179,22 +195,98 @@ export class HistoricalDataService {
     return this.attractionIllCache.get(cacheKey)!;
   }
 
-  /** Sparkline data: recent hours for one attraction from today's park snapshots. */
+  /** Sparkline data: standby waits for one attraction over the last N hours. */
   getRecentTrend(
     parkId: string,
     attractionId: string,
     hours = 6
   ): Observable<WaitTimeSnapshot[]> {
-    const today = this.formatEasternDate(new Date());
-    const cacheKey = `${parkId}:${attractionId}:${today}:${hours}`;
-    if (!this.recentTrendCache.has(cacheKey)) {
-      const request$ = from(
-        this.loadRecentTrend(parkId, attractionId, today, hours)
-      ).pipe(catchError(() => of([])), shareReplay(1));
-      this.recentTrendCache.set(cacheKey, request$);
+    const cacheKey = `${parkId}:${attractionId}:${hours}`;
+    const cached = this.recentTrendCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
     }
 
-    return this.recentTrendCache.get(cacheKey)!;
+    const request$ = from(this.loadRecentTrend(parkId, attractionId, hours)).pipe(
+      catchError(() => of([])),
+      shareReplay(1)
+    );
+    this.recentTrendCache.set(cacheKey, { cachedAt: now, request$ });
+    return request$;
+  }
+
+  /** Recent sparkline rows for every attraction in one or more parks (batched). */
+  getSparklineTrendsForParks(
+    parkIds: string[],
+    hours = 6
+  ): Observable<Record<string, WaitTimeSnapshot[]>> {
+    const normalizedIds = [...new Set(parkIds.filter(Boolean))].sort();
+    if (!normalizedIds.length) {
+      return of({});
+    }
+
+    const cacheKey = `${normalizedIds.join('|')}:${hours}`;
+    const cached = this.parkSparklineTrendsCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
+    }
+
+    const request$ = from(this.loadSparklineTrendsForParks(normalizedIds, hours)).pipe(
+      catchError(() => of({})),
+      shareReplay(1)
+    );
+    this.parkSparklineTrendsCache.set(cacheKey, { cachedAt: now, request$ });
+    return request$;
+  }
+
+  /** Latest standby snapshot per attraction for one or more parks (batched). */
+  getLastKnownWaitsForParks(
+    parkIds: string[]
+  ): Observable<Record<string, WaitTimeSnapshot>> {
+    const normalizedIds = [...new Set(parkIds.filter(Boolean))].sort();
+    if (!normalizedIds.length) {
+      return of({});
+    }
+
+    const cacheKey = normalizedIds.join('|');
+    const cached = this.parkLastKnownWaitsCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
+    }
+
+    const request$ = from(this.loadLastKnownWaitsForParks(normalizedIds)).pipe(
+      catchError(() => of({})),
+      shareReplay(1)
+    );
+    this.parkLastKnownWaitsCache.set(cacheKey, { cachedAt: now, request$ });
+    return request$;
+  }
+
+  /** Most recent stored snapshot that still has a standby wait time. */
+  getLastKnownWait(
+    parkId: string,
+    attractionId: string
+  ): Observable<WaitTimeSnapshot | null> {
+    const cacheKey = `${parkId}:${attractionId}`;
+    const cached = this.lastKnownWaitCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
+    }
+
+    const request$ = from(this.loadLastKnownWait(parkId, attractionId)).pipe(
+      catchError(() => of(null)),
+      shareReplay(1)
+    );
+    this.lastKnownWaitCache.set(cacheKey, { cachedAt: now, request$ });
+    return request$;
   }
 
   private async loadManifest(): Promise<DataManifest> {
@@ -357,10 +449,70 @@ export class HistoricalDataService {
     return rows.map((row) => this.mapIllRow(row));
   }
 
+  private async loadSparklineTrendsForParks(
+    parkIds: string[],
+    hours: number
+  ): Promise<Record<string, WaitTimeSnapshot[]>> {
+    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+    const placeholders = parkIds.map(() => '?').join(', ');
+    const rows = await this.turso.query(
+      `${SNAPSHOT_SELECT}
+       WHERE park_id IN (${placeholders})
+         AND collected_at >= ?
+       ORDER BY collected_at ASC`,
+      [...parkIds, cutoff]
+    );
+
+    const grouped: Record<string, WaitTimeSnapshot[]> = {};
+    for (const row of rows) {
+      const entry = this.mapSnapshotRow(row);
+      const bucket = grouped[entry.attractionId] ?? [];
+      bucket.push(entry);
+      grouped[entry.attractionId] = bucket;
+    }
+
+    return grouped;
+  }
+
+  private async loadLastKnownWaitsForParks(
+    parkIds: string[]
+  ): Promise<Record<string, WaitTimeSnapshot>> {
+    const placeholders = parkIds.map(() => '?').join(', ');
+    const rows = await this.turso.query(
+      `SELECT
+         ws.collected_at AS timestamp,
+         ws.attraction_id AS attractionId,
+         ws.attraction_name AS name,
+         ws.status,
+         ws.wait_time AS waitTime,
+         ws.entity_type AS entityType
+       FROM wait_snapshots ws
+       INNER JOIN (
+         SELECT park_id, attraction_id, MAX(collected_at) AS max_collected
+         FROM wait_snapshots
+         WHERE park_id IN (${placeholders})
+           AND wait_time IS NOT NULL
+         GROUP BY park_id, attraction_id
+       ) latest
+         ON ws.park_id = latest.park_id
+        AND ws.attraction_id = latest.attraction_id
+        AND ws.collected_at = latest.max_collected
+       WHERE ws.park_id IN (${placeholders})`,
+      [...parkIds, ...parkIds]
+    );
+
+    const grouped: Record<string, WaitTimeSnapshot> = {};
+    for (const row of rows) {
+      const entry = this.mapSnapshotRow(row);
+      grouped[entry.attractionId] = entry;
+    }
+
+    return grouped;
+  }
+
   private async loadRecentTrend(
     parkId: string,
     attractionId: string,
-    today: string,
     hours: number
   ): Promise<WaitTimeSnapshot[]> {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
@@ -368,13 +520,30 @@ export class HistoricalDataService {
       `${SNAPSHOT_SELECT}
        WHERE park_id = ?
          AND attraction_id = ?
-         AND local_date = ?
          AND collected_at >= ?
        ORDER BY collected_at ASC`,
-      [parkId, attractionId, today, cutoff]
+      [parkId, attractionId, cutoff]
     );
 
     return rows.map((row) => this.mapSnapshotRow(row));
+  }
+
+  private async loadLastKnownWait(
+    parkId: string,
+    attractionId: string
+  ): Promise<WaitTimeSnapshot | null> {
+    const rows = await this.turso.query(
+      `${SNAPSHOT_SELECT}
+       WHERE park_id = ?
+         AND attraction_id = ?
+         AND wait_time IS NOT NULL
+       ORDER BY collected_at DESC
+       LIMIT 1`,
+      [parkId, attractionId]
+    );
+
+    const row = rows[0];
+    return row ? this.mapSnapshotRow(row) : null;
   }
 
   private mapParkLlRow(row: TursoRow): ParkLlDailySnapshot {

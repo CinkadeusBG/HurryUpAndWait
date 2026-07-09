@@ -12,18 +12,25 @@ import { SkeletonModule } from 'primeng/skeleton';
 import {
   BehaviorSubject,
   combineLatest,
+  forkJoin,
+  interval,
   map,
+  of,
+  startWith,
   switchMap,
 } from 'rxjs';
 import {
   DEFAULT_PARK_ID,
   ParkConfig,
+  REFRESH_INTERVAL_MS,
   RESORT_THEMES,
   RESORT_WEATHER_LOCATIONS,
   ResortId,
   getParkById,
   getParksForResort,
 } from '../../core/constants/park.constants';
+import { WaitTimeSnapshot } from '../../core/models/historical.models';
+import { HistoricalDataService } from '../../core/services/historical-data.service';
 import {
   AllParksDashboardState,
   AttractionViewModel,
@@ -44,6 +51,7 @@ import {
 } from '../../core/utils/attraction.utils';
 import {
   buildLightningLanePurchaseMap,
+  getParkLightningLanePricing,
   type ParkLightningLanePricing,
 } from '../../core/utils/lightning-lane.utils';
 import { AttractionCardComponent } from './components/attraction-card/attraction-card.component';
@@ -85,6 +93,7 @@ const PREF_KEYS = {
 })
 export class DashboardComponent implements OnInit {
   private readonly themeParksService = inject(ThemeParksService);
+  private readonly historicalData = inject(HistoricalDataService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject(ElementRef<HTMLElement>);
@@ -104,9 +113,12 @@ export class DashboardComponent implements OnInit {
   parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
   schedule: import('../../core/models/theme-parks.models').ScheduleEntry[] = [];
   parkLightningLanePricing: Record<string, ParkLightningLanePricing> = {};
+  sparklineTrends: Record<string, WaitTimeSnapshot[]> = {};
+  sparklineLastWaits: Record<string, WaitTimeSnapshot> = {};
 
   private readonly parkId$ = new BehaviorSubject<string>(this.selectedParkId);
   private readonly favoritesMode$ = new BehaviorSubject<boolean>(this.favoritesMode);
+  private readonly sparklineParkIds$ = new BehaviorSubject<string[]>([]);
   private allAttractions: AttractionViewModel[] = [];
 
   readonly bottomNav: { id: BottomNavTab; label: string; icon: string }[] = [
@@ -150,11 +162,27 @@ export class DashboardComponent implements OnInit {
         this.rebuildViewModels();
       });
 
-    this.themeParksService
-      .watchWdwParkLightningLanePricing()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((pricing) => {
-        this.parkLightningLanePricing = pricing;
+    combineLatest([
+      this.sparklineParkIds$,
+      interval(REFRESH_INTERVAL_MS).pipe(startWith(0)),
+    ])
+      .pipe(
+        switchMap(([parkIds]) => {
+          const ids = [...new Set(parkIds.filter(Boolean))];
+          if (!ids.length) {
+            return of({ trends: {}, lastWaits: {} });
+          }
+
+          return forkJoin({
+            trends: this.historicalData.getSparklineTrendsForParks(ids, 6),
+            lastWaits: this.historicalData.getLastKnownWaitsForParks(ids),
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ trends, lastWaits }) => {
+        this.sparklineTrends = trends;
+        this.sparklineLastWaits = lastWaits;
       });
   }
 
@@ -181,6 +209,14 @@ export class DashboardComponent implements OnInit {
 
   get theme() {
     return RESORT_THEMES[this.selectedResort];
+  }
+
+  sparklineTrendFor(attractionId: string): WaitTimeSnapshot[] {
+    return this.sparklineTrends[attractionId] ?? [];
+  }
+
+  sparklineLastWaitFor(attractionId: string): WaitTimeSnapshot | null {
+    return this.sparklineLastWaits[attractionId] ?? null;
   }
 
   get emptyStateMessage(): string {
@@ -246,6 +282,11 @@ export class DashboardComponent implements OnInit {
 
     if (!state.loading && !state.error) {
       this.parkTimezone = state.timezone;
+      this.parkLightningLanePricing = {
+        ...this.parkLightningLanePricing,
+        [parkId]: getParkLightningLanePricing(state.schedule, state.timezone),
+      };
+      this.sparklineParkIds$.next([parkId]);
       const parkConfig = getParkById(parkId);
       this.allAttractions = this.buildAttractionsFromPark(
         {
@@ -274,6 +315,13 @@ export class DashboardComponent implements OnInit {
       this.parkTimezone =
         state.parks[0]?.timezone ??
         RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
+      this.parkLightningLanePricing = Object.fromEntries(
+        state.parks.map((park) => [
+          park.parkId,
+          getParkLightningLanePricing(park.schedule, park.timezone),
+        ])
+      );
+      this.sparklineParkIds$.next(state.parks.map((park) => park.parkId));
       this.allAttractions = state.parks.flatMap((park) =>
         this.buildAttractionsFromPark(park, true)
       );
@@ -369,5 +417,8 @@ export class DashboardComponent implements OnInit {
     this.lastRefreshed = null;
     this.parkTimezone = RESORT_WEATHER_LOCATIONS[this.selectedResort].timezone;
     this.schedule = [];
+    this.sparklineTrends = {};
+    this.sparklineLastWaits = {};
+    this.sparklineParkIds$.next([]);
   }
 }

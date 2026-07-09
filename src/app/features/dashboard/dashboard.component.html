@@ -42,6 +42,8 @@
                 [attraction]="attraction"
                 [showParkName]="favoritesMode"
                 [parkTimezone]="parkTimezone"
+                [trendEntries]="sparklineTrendFor(attraction.id)"
+                [lastKnownWait]="sparklineLastWaitFor(attraction.id)"
                 (favoriteToggle)="onFavoriteToggle($event)"
               ></app-attraction-card>
             }
@@ -54,6 +56,8 @@
           [closedAttractions]="closedAttractions"
           [showParkName]="favoritesMode"
           [parkTimezone]="parkTimezone"
+          [sparklineTrends]="sparklineTrends"
+          [sparklineLastWaits]="sparklineLastWaits"
           (favoriteToggle)="onFavoriteToggle($event)"
         ></app-closed-rides-panel>
       }

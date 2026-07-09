@@ -59,6 +59,9 @@ export function hasChartWaitValue(entry: WaitTimeSnapshot): boolean {
   return entry.waitTime !== null && Number.isFinite(entry.waitTime);
 }
 
+/** Minimum plotted points before a sparkline is shown (a line needs at least two). */
+export const SPARKLINE_MIN_POINTS = 2;
+
 /** Nearest dataset index for linear time-scale hover (Chart.js nearest mode often misses). */
 export function findNearestWaitTrendIndex(
   chart: Chart<'line'>,

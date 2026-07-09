@@ -46,7 +46,7 @@
         @if (hasIllHistory) {
           <div class="ill-stats-grid">
             <article class="ill-stat-card">
-              <p class="ill-stat-label">Latest stored</p>
+              <p class="ill-stat-label">Latest</p>
               <p class="ill-stat-value" [class.is-sold-out]="latestIllSnapshot?.soldOut">
                 {{ latestIllPriceLabel ?? '—' }}
               </p>
@@ -57,12 +57,11 @@
             <article class="ill-stat-card">
               <p class="ill-stat-label">Average</p>
               <p class="ill-stat-value">{{ averageIllPriceLabel ?? '—' }}</p>
-              <p class="ill-stat-hint">Across stored days</p>
+              <p class="ill-stat-hint">Across {{ illHistory.length }} days</p>
             </article>
             <article class="ill-stat-card">
               <p class="ill-stat-label">Sold-out days</p>
               <p class="ill-stat-value">{{ illSoldOutDays }} / {{ illHistory.length }}</p>
-              <p class="ill-stat-hint">From nightly collection</p>
             </article>
           </div>
         }

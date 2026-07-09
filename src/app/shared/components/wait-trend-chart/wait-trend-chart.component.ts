@@ -22,6 +22,7 @@ import {
   findNearestWaitTrendIndex,
   formatTimeLabel,
   hasChartWaitValue,
+  SPARKLINE_MIN_POINTS,
   waitValueForChart,
 } from '../../../core/utils/chart.utils';
 
@@ -182,17 +183,13 @@ export class WaitTrendChartComponent implements AfterViewInit, OnChanges, OnDest
       return;
     }
 
-    this.chartEntries = this.entries
-      .filter((entry) =>
-        this.compact
-          ? entry.status === 'OPERATING' && entry.waitTime !== null
-          : hasChartWaitValue(entry)
-      )
+    this.chartEntries = this.entries.filter((entry) => hasChartWaitValue(entry))
       .sort(
         (left, right) =>
           new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime()
       );
-    this.hasData = this.chartEntries.length > 1;
+    const minPoints = this.compact ? SPARKLINE_MIN_POINTS : 2;
+    this.hasData = this.chartEntries.length >= minPoints;
     this.clearHover();
 
     destroyChart(this.chart);

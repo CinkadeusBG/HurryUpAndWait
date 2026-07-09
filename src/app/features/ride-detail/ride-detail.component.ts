@@ -17,7 +17,11 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { getParkById, RESORT_THEMES } from '../../core/constants/park.constants';
-import { AttractionHistoryBundle, IllDailySnapshot } from '../../core/models/historical.models';
+import {
+  AttractionHistoryBundle,
+  IllDailySnapshot,
+  WaitTimeSnapshot,
+} from '../../core/models/historical.models';
 import { HistoricalDataService } from '../../core/services/historical-data.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
 import {
@@ -78,6 +82,9 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   illLoading = true;
   timeZone = 'America/New_York';
   hasFifteenMinuteAverages = false;
+  showIllSection = false;
+  todayEntries: WaitTimeSnapshot[] = [];
+  recentEntries: WaitTimeSnapshot[] = [];
 
   private fifteenMinuteBuckets: {
     label: string;
@@ -130,27 +137,8 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     destroyChart(this.illChart);
   }
 
-  get todayEntries() {
-    return this.history
-      ? getTodayEntries(this.history.entries, this.timeZone)
-      : [];
-  }
-
-  get recentEntries() {
-    return this.history
-      ? getRecentEntries(this.history.entries, 6, this.timeZone)
-      : [];
-  }
-
   get hasHistory(): boolean {
     return (this.history?.entries.length ?? 0) > 0;
-  }
-
-  get showIllSection(): boolean {
-    return (
-      this.resort === 'wdw' &&
-      (this.illHistory.length > 0 || !!this.liveIllPrice)
-    );
   }
 
   get hasIllHistory(): boolean {
@@ -195,6 +183,11 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadHistory(): void {
     this.loading = true;
     this.error = null;
+    this.history = null;
+    this.todayEntries = [];
+    this.recentEntries = [];
+    this.hasFifteenMinuteAverages = false;
+    this.fifteenMinuteBuckets = [];
 
     this.historicalData
       .getAttractionHistory(this.parkId, this.attractionId)
@@ -202,6 +195,9 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: (bundle) => {
           this.history = bundle;
+          this.todayEntries = getTodayEntries(bundle.entries, this.timeZone);
+          this.recentEntries = getRecentEntries(bundle.entries, 6, this.timeZone);
+          this.prepareFifteenMinuteBuckets();
           this.loading = false;
           afterNextRender(() => this.renderAggregateCharts(), {
             injector: this.injector,
@@ -218,6 +214,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     this.illHistory = [];
     this.liveIllPrice = null;
     this.illLoading = true;
+    this.refreshIllSection();
 
     if (this.resort !== 'wdw') {
       this.illLoading = false;
@@ -230,6 +227,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((entries) => {
         this.illHistory = entries;
         this.illLoading = false;
+        this.refreshIllSection();
         afterNextRender(() => this.renderIllChart(), { injector: this.injector });
       });
 
@@ -242,6 +240,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
         next: ({ live, schedule }) => {
           const item = live.liveData.find((entry) => entry.id === this.attractionId);
           if (!item) {
+            this.refreshIllSection();
             return;
           }
 
@@ -250,11 +249,35 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
             live.timezone
           );
           this.liveIllPrice = getLightningLanePrice(item, undefined, purchaseMap);
+          this.refreshIllSection();
         },
         error: () => {
           this.liveIllPrice = null;
+          this.refreshIllSection();
         },
       });
+  }
+
+  private refreshIllSection(): void {
+    this.showIllSection =
+      this.resort === 'wdw' &&
+      (this.illHistory.length > 0 || !!this.liveIllPrice);
+  }
+
+  private prepareFifteenMinuteBuckets(): void {
+    if (!this.history?.entries.length) {
+      this.fifteenMinuteBuckets = [];
+      this.hasFifteenMinuteAverages = false;
+      return;
+    }
+
+    const fifteenMinute = computeFifteenMinuteAverages(
+      this.history.entries,
+      this.timeZone
+    ).filter((bucket) => bucket.sampleCount > 0);
+
+    this.fifteenMinuteBuckets = fifteenMinute;
+    this.hasFifteenMinuteAverages = fifteenMinute.length > 0;
   }
 
   private renderIllChart(): void {
@@ -276,7 +299,6 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private renderAggregateCharts(): void {
     if (!this.history?.entries.length) {
-      this.hasFifteenMinuteAverages = false;
       return;
     }
 
@@ -287,18 +309,8 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       text: '#8fa0c4',
     };
 
-    const fifteenMinute = computeFifteenMinuteAverages(
-      this.history.entries,
-      this.timeZone
-    ).filter((bucket) => bucket.sampleCount > 0);
-
-    this.fifteenMinuteBuckets = fifteenMinute;
-    this.hasFifteenMinuteAverages = fifteenMinute.length > 0;
-
-    if (fifteenMinute.length > 0) {
-      afterNextRender(() => this.renderFifteenMinuteChart(), {
-        injector: this.injector,
-      });
+    if (this.hasFifteenMinuteAverages) {
+      this.renderFifteenMinuteChart();
     } else {
       destroyChart(this.fifteenMinuteChart);
       this.fifteenMinuteChart = null;

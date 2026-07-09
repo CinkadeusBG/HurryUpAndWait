@@ -1,4 +1,5 @@
 import { ResortId } from '../constants/park.constants';
+import { getLocalHourMinute } from './chart.utils';
 import { getLightningLanePrice } from './lightning-lane.utils';
 import { isOmittedAttraction } from './omitted-attractions.utils';
 import {
@@ -249,15 +250,7 @@ function isLandmarkAttraction(
   return /\bCastle\b/i.test(item.name) || /\bTree of Life\b/i.test(item.name);
 }
 
-/** Street transports posted as rides without real wait-time tracking (e.g. Main St Vehicles). */
-function isStreetTransport(
-  item: LiveDataItem,
-  attractionType?: string
-): boolean {
-  if (attractionType !== 'RIDE' || !/\bVehicles\b/i.test(item.name)) {
-    return false;
-  }
-
+function hasTrackableQueueSignals(item: LiveDataItem): boolean {
   const hasForecast = (item.forecast?.length ?? 0) > 0;
   const hasReturnQueue =
     !!item.queue?.RETURN_TIME || !!item.queue?.PAID_RETURN_TIME;
@@ -265,7 +258,38 @@ function isStreetTransport(
     item.queue?.STANDBY?.waitTime !== undefined &&
     item.queue?.STANDBY?.waitTime !== null;
 
-  return !hasForecast && !hasReturnQueue && !hasNumericWait;
+  return hasForecast || hasReturnQueue || hasNumericWait;
+}
+
+/** Street transports posted as rides without real wait-time tracking (e.g. Main St Vehicles). */
+function isStreetTransport(
+  item: LiveDataItem,
+  attractionType?: string
+): boolean {
+  if (!/\bVehicles\b/i.test(item.name) || hasTrackableQueueSignals(item)) {
+    return false;
+  }
+
+  // Live payloads often omit attractionType; name + queue signals are enough to skip.
+  if (attractionType !== undefined && attractionType !== 'RIDE') {
+    return false;
+  }
+
+  return true;
+}
+
+/** Whether /entity/{id} is needed to decide if an attraction belongs on the dashboard. */
+export function shouldFetchEntityMetadata(item: LiveDataItem): boolean {
+  if (item.entityType !== 'ATTRACTION' || isOmittedAttraction(item)) {
+    return false;
+  }
+
+  const attractionType = item.attractionType;
+  if (isLandmarkAttraction(item, attractionType)) {
+    return false;
+  }
+
+  return !isStreetTransport(item, attractionType);
 }
 
 export function filterAttractions(
@@ -467,6 +491,53 @@ export function formatWaitTime(waitTime: number | null, isOpen: boolean): string
     return 'Walk-on';
   }
   return `${waitTime}`;
+}
+
+export function formatLocalDateKey(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+export function isLocalDateToday(
+  isoTimestamp: string,
+  timeZone: string,
+  now = new Date()
+): boolean {
+  return (
+    formatLocalDateKey(new Date(isoTimestamp), timeZone) ===
+    formatLocalDateKey(now, timeZone)
+  );
+}
+
+/** Compact clock label for down-duration chips, e.g. 8:23p. */
+export function formatDownSinceTime(isoTimestamp: string, timeZone: string): string {
+  const { hour, minute } = getLocalHourMinute(isoTimestamp, timeZone);
+  const suffix = hour >= 12 ? 'p' : 'a';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  const minuteLabel = minute.toString().padStart(2, '0');
+  return `${hour12}:${minuteLabel}${suffix}`;
+}
+
+export function minutesSinceTimestamp(
+  isoTimestamp: string,
+  nowMs = Date.now()
+): number {
+  return Math.max(0, Math.floor((nowMs - new Date(isoTimestamp).getTime()) / 60_000));
+}
+
+/** Formats elapsed down time; switches to hours at 120+ minutes. */
+export function formatDownDuration(isoTimestamp: string, nowMs = Date.now()): string {
+  const minutes = minutesSinceTimestamp(isoTimestamp, nowMs);
+  if (minutes < 120) {
+    return `${minutes} min`;
+  }
+
+  const hours = minutes / 60;
+  return Number.isInteger(hours) ? `${hours} hr` : `${hours.toFixed(1)} hr`;
 }
 
 /** Finds the next refurb/reopen hint from operating hours or schedule-like data. */
