@@ -243,11 +243,18 @@ function isLandmarkAttraction(
   item: LiveDataItem,
   attractionType?: string
 ): boolean {
-  if (attractionType !== 'UNKNOWN' || item.queue) {
+  const matchesLandmarkName =
+    /\bCastle\b/i.test(item.name) || /\bTree of Life\b/i.test(item.name);
+  if (!matchesLandmarkName || item.queue) {
     return false;
   }
 
-  return /\bCastle\b/i.test(item.name) || /\bTree of Life\b/i.test(item.name);
+  // Live payloads often omit attractionType; name + absent queue is enough to skip.
+  if (attractionType !== undefined && attractionType !== 'UNKNOWN') {
+    return false;
+  }
+
+  return true;
 }
 
 function hasTrackableQueueSignals(item: LiveDataItem): boolean {

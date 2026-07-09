@@ -108,6 +108,19 @@ export function buildLightningLanePurchaseMap(
   return map;
 }
 
+/** True when live/schedule signals show this ride sells Individual Lightning Lane. */
+export function isIndividualLightningLaneRide(
+  item: LiveDataItem,
+  purchaseMap: Map<string, SchedulePurchase> = new Map()
+): boolean {
+  if (item.queue?.PAID_RETURN_TIME) {
+    return true;
+  }
+
+  const disneyId = item.externalId?.split(';')[0]?.trim();
+  return !!disneyId && purchaseMap.has(disneyId);
+}
+
 function resolveDisneyExternalId(
   item: LiveDataItem,
   metadata?: EntityMetadata

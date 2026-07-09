@@ -22,7 +22,13 @@ import {
 } from '../constants/park.constants';
 import { shouldFetchEntityMetadata } from '../utils/attraction.utils';
 import {
+  getCachedEntityMetadataMap,
+  setCachedEntityMetadata,
+} from '../utils/entity-metadata-cache.utils';
+import {
+  buildLightningLanePurchaseMap,
   getParkLightningLanePricing,
+  isIndividualLightningLaneRide,
   type ParkLightningLanePricing,
 } from '../utils/lightning-lane.utils';
 import {
@@ -31,6 +37,7 @@ import {
   EntityDetail,
   EntityMetadata,
   LiveDataItem,
+  ScheduleEntry,
   ParkDashboardState,
   ParkLiveBundle,
   ParkLiveResponse,
@@ -137,14 +144,21 @@ export class ThemeParksService {
     return this.http.get<EntityDetail>(`${API_BASE_URL}/entity/${entityId}`);
   }
 
-  /** Fetches and caches static metadata used to distinguish real experiences from landmarks. */
+  /** Fetches static metadata; non-ILL attraction types are cached locally for 30 days. */
   getEntityMetadataMap(
-    liveData: LiveDataItem[]
+    liveData: LiveDataItem[],
+    schedule: ScheduleEntry[] = [],
+    timezone = 'America/New_York'
   ): Observable<Record<string, EntityMetadata>> {
     const metadata: Record<string, EntityMetadata> = {};
+    const liveById = new Map(liveData.map((item) => [item.id, item]));
 
     for (const item of liveData) {
-      if (item.entityType === 'SHOW' && item.externalId) {
+      if (!item.externalId) {
+        continue;
+      }
+
+      if (item.entityType === 'SHOW' || item.entityType === 'ATTRACTION') {
         metadata[item.id] = { externalId: item.externalId };
       }
     }
@@ -161,15 +175,43 @@ export class ThemeParksService {
       return of(metadata);
     }
 
+    const cachedMetadata = getCachedEntityMetadataMap(attractionIds);
+    Object.assign(metadata, cachedMetadata);
+
+    const lightningLanePurchases = buildLightningLanePurchaseMap(schedule, timezone);
+    const idsToFetch: string[] = [];
+
+    for (const id of attractionIds) {
+      if (cachedMetadata[id]) {
+        continue;
+      }
+
+      const item = liveById.get(id);
+      if (item && isIndividualLightningLaneRide(item, lightningLanePurchases)) {
+        // ILL rides already expose externalId on live data for price matching.
+        metadata[id] = {
+          ...metadata[id],
+          externalId: item.externalId ?? metadata[id]?.externalId,
+        };
+        continue;
+      }
+
+      idsToFetch.push(id);
+    }
+
+    if (!idsToFetch.length) {
+      return of(metadata);
+    }
+
     return forkJoin(
-      attractionIds.map((id) =>
+      idsToFetch.map((id) =>
         this.getEntityCached(id).pipe(
           map(
             (entity): [string, EntityMetadata] => [
               id,
               {
                 attractionType: entity.attractionType,
-                externalId: entity.externalId,
+                externalId: entity.externalId ?? liveById.get(id)?.externalId,
               },
             ]
           ),
@@ -177,10 +219,16 @@ export class ThemeParksService {
         )
       )
     ).pipe(
-      map((entries) => ({
-        ...metadata,
-        ...Object.fromEntries(entries),
-      }))
+      map((entries) => {
+        for (const [id, entry] of entries) {
+          if (entry.attractionType || entry.externalId) {
+            setCachedEntityMetadata(id, entry);
+          }
+          metadata[id] = { ...metadata[id], ...entry };
+        }
+
+        return metadata;
+      })
     );
   }
 
@@ -227,7 +275,11 @@ export class ThemeParksService {
       areaMap: this.getAreaMap(parkId),
     }).pipe(
       switchMap(({ live, schedule, areaMap }) =>
-        this.getEntityMetadataMap(live.liveData).pipe(
+        this.getEntityMetadataMap(
+          live.liveData,
+          schedule.schedule,
+          live.timezone
+        ).pipe(
           map(
             (entityMetadata): ParkDashboardState => ({
               loading: false,
@@ -305,7 +357,11 @@ export class ThemeParksService {
       areaMap: this.getAreaMap(parkId),
     }).pipe(
       switchMap(({ live, schedule, areaMap }) =>
-        this.getEntityMetadataMap(live.liveData).pipe(
+        this.getEntityMetadataMap(
+          live.liveData,
+          schedule.schedule,
+          live.timezone
+        ).pipe(
           map(
             (entityMetadata): ParkLiveBundle => ({
               parkId: park.id,
