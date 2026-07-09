@@ -30,8 +30,10 @@ import {
   computeDayOfWeekAverages,
   computeFifteenMinuteAverages,
   destroyChart,
+  ensureWeekendChartPlugins,
   getRecentEntries,
   getTodayEntries,
+  WEEKEND_DAY_INDICES,
 } from '../../core/utils/chart.utils';
 import {
   averageIllPriceCents,
@@ -285,15 +287,20 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    ensureWeekendChartPlugins();
     destroyChart(this.illChart);
     this.illChart = new Chart(
       this.illCanvas.nativeElement,
-      buildIllDailyBarChartConfig(this.illHistory, {
-        line: this.accent,
-        fill: `${this.accent}33`,
-        grid: 'rgba(255, 255, 255, 0.08)',
-        text: '#8fa0c4',
-      })
+      buildIllDailyBarChartConfig(
+        this.illHistory,
+        {
+          line: this.accent,
+          fill: `${this.accent}33`,
+          grid: 'rgba(255, 255, 255, 0.08)',
+          text: '#8fa0c4',
+        },
+        this.timeZone
+      )
     );
   }
 
@@ -302,6 +309,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    ensureWeekendChartPlugins();
     const palette = {
       line: this.accent,
       fill: `${this.accent}33`,
@@ -324,7 +332,9 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       destroyChart(this.dowChart);
       this.dowChart = new Chart(
         this.dowCanvas.nativeElement,
-        buildBarChartConfig(dowLabels, dowValues, palette)
+        buildBarChartConfig(dowLabels, dowValues, palette, {
+          weekendBarIndices: [...WEEKEND_DAY_INDICES],
+        })
       );
     }
   }

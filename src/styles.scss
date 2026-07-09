@@ -69,6 +69,10 @@ h3 {
   font-family: var(--font-display);
 }
 
+a {
+  text-decoration: none;
+}
+
 .glass-panel,
 .glass-card {
   backdrop-filter: blur(18px) saturate(140%);

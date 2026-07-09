@@ -2,9 +2,23 @@ import {
   Chart,
   ChartConfiguration,
   ChartOptions,
+  ChartType,
   Plugin,
   TooltipItem,
 } from 'chart.js';
+
+declare module 'chart.js' {
+  interface PluginOptionsByType<TType extends ChartType = ChartType> {
+    weekendBarHighlight?: {
+      weekendIndices?: number[];
+      bandColor?: string;
+    };
+    weekendDayHighlight?: {
+      enabled?: boolean;
+      bandColor?: string;
+    };
+  }
+}
 
 interface WaitTrendPoint {
   x: number;
@@ -17,6 +31,163 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const SLOTS_PER_DAY = 24 * 4;
+
+/** Sun = 0 and Sat = 6 in DAY_LABELS order. */
+export const WEEKEND_DAY_INDICES = [0, 6] as const;
+
+const WEEKEND_BAND_COLOR = 'rgba(148, 163, 184, 0.11)';
+const WEEKEND_TICK_COLOR = '#b7c4e8';
+
+export interface HistoryBarChartOptions extends Partial<ChartOptions<'bar'>> {
+  weekendBarIndices?: number[];
+}
+
+export function getWeekdayShortFromLocalDate(
+  localDate: string,
+  timeZone: string
+): string {
+  const [year, month, day] = localDate.split('-').map(Number);
+  if (!year || !month || !day) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+  }).format(new Date(Date.UTC(year, month - 1, day, 12, 0, 0)));
+}
+
+export function isWeekendLocalDate(localDate: string, timeZone: string): boolean {
+  const weekday = getWeekdayShortFromLocalDate(localDate, timeZone);
+  return weekday === 'Sat' || weekday === 'Sun';
+}
+
+export function isWeekendTimestamp(isoTimestamp: string, timeZone: string): boolean {
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+  }).format(new Date(isoTimestamp));
+
+  return weekday === 'Sat' || weekday === 'Sun';
+}
+
+export function getWeekendBarIndicesFromLocalDates(
+  localDates: string[],
+  timeZone: string
+): number[] {
+  return localDates
+    .map((localDate, index) =>
+      isWeekendLocalDate(localDate, timeZone) ? index : -1
+    )
+    .filter((index) => index >= 0);
+}
+
+function getBarBandWidth(chart: Chart<'bar'>, index: number): number {
+  const bars = chart.getDatasetMeta(0).data;
+  if (bars.length <= 1) {
+    return chart.chartArea.width * 0.55;
+  }
+
+  const current = bars[index]?.x ?? 0;
+  if (index === 0) {
+    const next = bars[1]?.x ?? current;
+    return Math.abs(next - current);
+  }
+
+  if (index === bars.length - 1) {
+    const prev = bars[index - 1]?.x ?? current;
+    return Math.abs(current - prev);
+  }
+
+  const prev = bars[index - 1]?.x ?? current;
+  const next = bars[index + 1]?.x ?? current;
+  return (Math.abs(current - prev) + Math.abs(next - current)) / 2;
+}
+
+function weekendBarFill(palette: WaitChartPalette): string {
+  if (palette.fill.startsWith('#')) {
+    const base = palette.fill.slice(0, 7);
+    return `${base}55`;
+  }
+
+  if (palette.fill.startsWith('rgba')) {
+    return palette.fill.replace(/[\d.]+\)$/, '0.3)');
+  }
+
+  return palette.fill;
+}
+
+function weekendBarBorder(palette: WaitChartPalette): string {
+  return palette.line;
+}
+
+/** Shaded bands behind weekend category bars. */
+export const weekendBarHighlightPlugin: Plugin<'bar'> = {
+  id: 'weekendBarHighlight',
+  beforeDatasetsDraw(chart) {
+    const weekendIndices = (
+      chart.options.plugins?.weekendBarHighlight?.weekendIndices ?? []
+    ).filter((index): index is number => typeof index === 'number');
+    if (!weekendIndices.length) {
+      return;
+    }
+
+    const { ctx, chartArea } = chart;
+    const meta = chart.getDatasetMeta(0);
+
+    ctx.save();
+    ctx.fillStyle =
+      chart.options.plugins?.weekendBarHighlight?.bandColor ?? WEEKEND_BAND_COLOR;
+
+    for (const index of weekendIndices) {
+      const bar = meta.data[index];
+      if (!bar || typeof bar.x !== 'number') {
+        continue;
+      }
+
+      const width = getBarBandWidth(chart, index);
+      ctx.fillRect(
+        bar.x - width / 2,
+        chartArea.top,
+        width,
+        chartArea.bottom - chartArea.top
+      );
+    }
+
+    ctx.restore();
+  },
+};
+
+/** Full-chart wash when a single-day line chart falls on a weekend. */
+export const weekendDayHighlightPlugin: Plugin<'line'> = {
+  id: 'weekendDayHighlight',
+  beforeDatasetsDraw(chart) {
+    if (!chart.options.plugins?.weekendDayHighlight?.enabled) {
+      return;
+    }
+
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.fillStyle =
+      chart.options.plugins?.weekendDayHighlight?.bandColor ?? WEEKEND_BAND_COLOR;
+    ctx.fillRect(
+      chartArea.left,
+      chartArea.top,
+      chartArea.width,
+      chartArea.bottom - chartArea.top
+    );
+    ctx.restore();
+  },
+};
+
+let weekendPluginsRegistered = false;
+
+export function ensureWeekendChartPlugins(): void {
+  if (!weekendPluginsRegistered) {
+    Chart.register(weekendBarHighlightPlugin, weekendDayHighlightPlugin);
+    weekendPluginsRegistered = true;
+  }
+}
 
 export function getLocalHourMinute(
   isoTimestamp: string,
@@ -338,6 +509,9 @@ export function buildDetailWaitTrendConfig(
   const tickMin = Math.floor(minX / ONE_HOUR_MS) * ONE_HOUR_MS;
   const tickMax = Math.ceil(maxX / ONE_HOUR_MS) * ONE_HOUR_MS;
   const yMax = computeWaitAxisMax(points.map((point) => point.y));
+  const highlightWeekendDay =
+    entries.length > 0 &&
+    entries.every((entry) => isWeekendTimestamp(entry.timestamp, timeZone));
 
   return {
     type: 'line',
@@ -370,6 +544,9 @@ export function buildDetailWaitTrendConfig(
         legend: { display: false },
         tooltip: {
           enabled: false,
+        },
+        weekendDayHighlight: {
+          enabled: highlightWeekendDay,
         },
       },
       scales: {
@@ -504,14 +681,20 @@ export function buildBarChartConfig(
   labels: string[],
   values: (number | null)[],
   palette: WaitChartPalette = DEFAULT_CHART_PALETTE,
-  options?: Partial<ChartOptions<'bar'>>
+  options?: HistoryBarChartOptions
 ): ChartConfiguration<'bar'> {
-  const { scales: scaleOverrides, plugins: pluginOverrides, ...otherOptions } = options ?? {};
+  const {
+    weekendBarIndices = [],
+    scales: scaleOverrides,
+    plugins: pluginOverrides,
+    ...otherOptions
+  } = options ?? {};
   const xOverrides = scaleOverrides?.['x'];
   const yOverrides = scaleOverrides?.['y'];
   const yMax = computeWaitAxisMax(
     values.filter((value): value is number => value !== null)
   );
+  const weekendIndexSet = new Set(weekendBarIndices);
 
   return {
     type: 'bar',
@@ -520,8 +703,12 @@ export function buildBarChartConfig(
       datasets: [
         {
           data: values,
-          backgroundColor: palette.fill,
-          borderColor: palette.line,
+          backgroundColor: labels.map((_, index) =>
+            weekendIndexSet.has(index) ? weekendBarFill(palette) : palette.fill
+          ),
+          borderColor: labels.map((_, index) =>
+            weekendIndexSet.has(index) ? weekendBarBorder(palette) : palette.line
+          ),
           borderWidth: 1,
           borderRadius: 6,
         },
@@ -533,11 +720,19 @@ export function buildBarChartConfig(
       animation: false,
       plugins: {
         legend: { display: false },
+        weekendBarHighlight: {
+          weekendIndices: weekendBarIndices,
+        },
         tooltip: {
           callbacks: {
             label: (context: TooltipItem<'bar'>) => {
               const value = context.parsed.y;
-              return value === null ? 'No data' : `${value} min avg`;
+              const weekendNote = weekendIndexSet.has(context.dataIndex)
+                ? ' · Weekend'
+                : '';
+              return value === null
+                ? 'No data'
+                : `${value} min avg${weekendNote}`;
             },
           },
         },
@@ -546,8 +741,14 @@ export function buildBarChartConfig(
       scales: {
         x: {
           ticks: {
-            color: palette.text,
-            font: { size: 10 },
+            color: (context) =>
+              weekendIndexSet.has(context.index)
+                ? WEEKEND_TICK_COLOR
+                : palette.text,
+            font: (context) => ({
+              size: 10,
+              weight: weekendIndexSet.has(context.index) ? 700 : 500,
+            }),
             maxRotation: 45,
             autoSkip: true,
             ...xOverrides?.ticks,
@@ -579,16 +780,37 @@ export function buildBarChartConfig(
 
 export function buildIllDailyBarChartConfig(
   snapshots: IllDailySnapshot[],
-  palette: WaitChartPalette = DEFAULT_CHART_PALETTE
+  palette: WaitChartPalette = DEFAULT_CHART_PALETTE,
+  timeZone = 'America/New_York'
 ): ChartConfiguration<'bar'> {
-  const labels = snapshots.map((entry) => formatIllLocalDate(entry.localDate));
+  const weekendBarIndices = getWeekendBarIndicesFromLocalDates(
+    snapshots.map((entry) => entry.localDate),
+    timeZone
+  );
+  const weekendIndexSet = new Set(weekendBarIndices);
+  const labels = snapshots.map((entry) => {
+    const formatted = formatIllLocalDate(entry.localDate);
+    if (!isWeekendLocalDate(entry.localDate, timeZone)) {
+      return formatted;
+    }
+
+    return `${getWeekdayShortFromLocalDate(entry.localDate, timeZone)} ${formatted}`;
+  });
   const values = snapshots.map((entry) => Math.ceil(entry.priceCents / 100));
-  const backgroundColors = snapshots.map((entry) =>
-    entry.soldOut ? 'rgba(148, 163, 184, 0.45)' : palette.fill
-  );
-  const borderColors = snapshots.map((entry) =>
-    entry.soldOut ? 'rgba(248, 113, 113, 0.75)' : palette.line
-  );
+  const backgroundColors = snapshots.map((entry, index) => {
+    if (entry.soldOut) {
+      return 'rgba(148, 163, 184, 0.45)';
+    }
+
+    return weekendIndexSet.has(index) ? weekendBarFill(palette) : palette.fill;
+  });
+  const borderColors = snapshots.map((entry, index) => {
+    if (entry.soldOut) {
+      return 'rgba(248, 113, 113, 0.75)';
+    }
+
+    return weekendIndexSet.has(index) ? weekendBarBorder(palette) : palette.line;
+  });
 
   return {
     type: 'bar',
@@ -610,6 +832,9 @@ export function buildIllDailyBarChartConfig(
       animation: false,
       plugins: {
         legend: { display: false },
+        weekendBarHighlight: {
+          weekendIndices: weekendBarIndices,
+        },
         tooltip: {
           callbacks: {
             label: (context: TooltipItem<'bar'>) => {
@@ -618,14 +843,27 @@ export function buildIllDailyBarChartConfig(
                 return '';
               }
               const status = entry.soldOut ? 'Sold out' : 'Available';
-              return `${formatIllPriceCents(entry.priceCents)} · ${status}`;
+              const weekendNote = weekendIndexSet.has(context.dataIndex)
+                ? ' · Weekend'
+                : '';
+              return `${formatIllPriceCents(entry.priceCents)} · ${status}${weekendNote}`;
             },
           },
         },
       },
       scales: {
         x: {
-          ticks: { color: palette.text, font: { size: 10 }, maxTicksLimit: 8 },
+          ticks: {
+            color: (context) =>
+              weekendIndexSet.has(context.index)
+                ? WEEKEND_TICK_COLOR
+                : palette.text,
+            font: (context) => ({
+              size: 10,
+              weight: weekendIndexSet.has(context.index) ? 700 : 500,
+            }),
+            maxTicksLimit: 8,
+          },
           grid: { display: false },
         },
         y: {

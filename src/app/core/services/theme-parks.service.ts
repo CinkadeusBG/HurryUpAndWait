@@ -49,6 +49,10 @@ export class ThemeParksService {
   private readonly childrenCache = new Map<string, Observable<EntityChildrenResponse>>();
   private readonly areaMapCache = new Map<string, Observable<Record<string, string>>>();
   private readonly entityCache = new Map<string, Observable<EntityDetail>>();
+  private readonly scheduleCache = new Map<
+    string,
+    { cachedAt: number; request$: Observable<ParkScheduleResponse> }
+  >();
 
   private readonly manualRefresh$ = new BehaviorSubject<void>(undefined);
 
@@ -135,9 +139,21 @@ export class ThemeParksService {
   }
 
   getSchedule(parkId: string): Observable<ParkScheduleResponse> {
-    return this.http
+    const cached = this.scheduleCache.get(parkId);
+    const now = Date.now();
+
+    if (cached && now - cached.cachedAt < REFRESH_INTERVAL_MS) {
+      return cached.request$;
+    }
+
+    const request$ = this.http
       .get<ParkScheduleResponse>(`${API_BASE_URL}/entity/${parkId}/schedule`)
-      .pipe(catchError((error) => throwError(() => error)));
+      .pipe(
+        catchError((error) => throwError(() => error)),
+        shareReplay(1)
+      );
+    this.scheduleCache.set(parkId, { cachedAt: now, request$ });
+    return request$;
   }
 
   getEntity(entityId: string): Observable<EntityDetail> {

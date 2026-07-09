@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AccordionModule } from 'primeng/accordion';
 import { WaitTimeSnapshot } from '../../../../core/models/historical.models';
 import { AttractionViewModel } from '../../../../core/models/theme-parks.models';
 import { AttractionCardComponent } from '../attraction-card/attraction-card.component';
@@ -7,7 +6,7 @@ import { AttractionCardComponent } from '../attraction-card/attraction-card.comp
 @Component({
   selector: 'app-closed-rides-panel',
   standalone: true,
-  imports: [AccordionModule, AttractionCardComponent],
+  imports: [AttractionCardComponent],
   templateUrl: './closed-rides-panel.component.html',
   styleUrl: './closed-rides-panel.component.scss',
 })

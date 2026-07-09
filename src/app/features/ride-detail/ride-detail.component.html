@@ -29,7 +29,7 @@
       <p-card styleClass="detail-card glass-card">
         <ng-template pTemplate="title">Individual Lightning Lane</ng-template>
         <ng-template pTemplate="subtitle">
-          End-of-day ILL prices (gray/red bars were sold out that day)
+          End-of-day ILL prices · weekends shaded (gray/red bars were sold out)
         </ng-template>
 
         @if (liveIllPriceLabel) {
@@ -113,7 +113,9 @@
 
       <p-card styleClass="detail-card glass-card">
         <ng-template pTemplate="title">Day-of-week pattern</ng-template>
-        <ng-template pTemplate="subtitle">Average standby wait by weekday</ng-template>
+        <ng-template pTemplate="subtitle">
+          Average standby wait by weekday · Sat/Sun highlighted
+        </ng-template>
         <div class="chart-panel chart-panel-tall">
           <canvas #dowCanvas></canvas>
         </div>

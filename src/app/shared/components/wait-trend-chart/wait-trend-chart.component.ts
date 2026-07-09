@@ -18,6 +18,7 @@ import {
   buildDetailWaitTrendConfig,
   buildLineChartConfig,
   destroyChart,
+  ensureWeekendChartPlugins,
   ensureWaitTrendCrosshairPlugin,
   findNearestWaitTrendIndex,
   formatTimeLabel,
@@ -200,6 +201,7 @@ export class WaitTrendChartComponent implements AfterViewInit, OnChanges, OnDest
     }
 
     ensureWaitTrendCrosshairPlugin();
+    ensureWeekendChartPlugins();
 
     if (!this.compact) {
       const config = buildDetailWaitTrendConfig(

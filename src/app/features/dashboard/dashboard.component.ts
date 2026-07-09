@@ -162,6 +162,13 @@ export class DashboardComponent implements OnInit {
         this.rebuildViewModels();
       });
 
+    this.themeParksService
+      .watchWdwParkLightningLanePricing()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((pricing) => {
+        this.parkLightningLanePricing = pricing;
+      });
+
     combineLatest([
       this.sparklineParkIds$,
       interval(REFRESH_INTERVAL_MS).pipe(startWith(0)),
@@ -282,10 +289,6 @@ export class DashboardComponent implements OnInit {
 
     if (!state.loading && !state.error) {
       this.parkTimezone = state.timezone;
-      this.parkLightningLanePricing = {
-        ...this.parkLightningLanePricing,
-        [parkId]: getParkLightningLanePricing(state.schedule, state.timezone),
-      };
       this.sparklineParkIds$.next([parkId]);
       const parkConfig = getParkById(parkId);
       this.allAttractions = this.buildAttractionsFromPark(

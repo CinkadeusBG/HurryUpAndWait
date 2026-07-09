@@ -1,20 +1,19 @@
 @if (closedAttractions.length > 0) {
   <section class="closed-panel glass-panel">
-    <p-accordion>
-      <p-accordionTab [header]="'Closed & unavailable (' + closedAttractions.length + ')'">
-        <div class="closed-grid">
-          @for (item of closedAttractions; track item.id) {
-            <app-attraction-card
-              [attraction]="item"
-              [showParkName]="showParkName"
-              [parkTimezone]="parkTimezone"
-              [trendEntries]="sparklineTrendFor(item.id)"
-              [lastKnownWait]="sparklineLastWaitFor(item.id)"
-              (favoriteToggle)="favoriteToggle.emit($event)"
-            ></app-attraction-card>
-          }
-        </div>
-      </p-accordionTab>
-    </p-accordion>
+    <h2 class="closed-panel-title">
+      Closed & unavailable ({{ closedAttractions.length }})
+    </h2>
+    <div class="closed-grid">
+      @for (item of closedAttractions; track item.id) {
+        <app-attraction-card
+          [attraction]="item"
+          [showParkName]="showParkName"
+          [parkTimezone]="parkTimezone"
+          [trendEntries]="sparklineTrendFor(item.id)"
+          [lastKnownWait]="sparklineLastWaitFor(item.id)"
+          (favoriteToggle)="favoriteToggle.emit($event)"
+        ></app-attraction-card>
+      }
+    </div>
   </section>
 }
