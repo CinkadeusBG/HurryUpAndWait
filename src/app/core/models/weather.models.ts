@@ -18,6 +18,22 @@ export interface ResortWeatherState {
   weather: WeatherSnapshot | null;
 }
 
+/** Short-horizon hourly slot for the info-channel weather strip. */
+export interface WeatherHourlyPoint {
+  time: string;
+  temperatureF: number;
+  precipProbability: number | null;
+  label: string;
+  iconVariant: WeatherIconVariant;
+}
+
+export interface ResortForecastState {
+  loading: boolean;
+  error: string | null;
+  weather: WeatherSnapshot | null;
+  hourly: WeatherHourlyPoint[];
+}
+
 export interface OpenMeteoCurrentResponse {
   current: {
     time: string;
@@ -28,5 +44,7 @@ export interface OpenMeteoCurrentResponse {
   hourly?: {
     time: string[];
     precipitation_probability?: Array<number | null>;
+    temperature_2m?: Array<number | null>;
+    weather_code?: Array<number | null>;
   };
 }

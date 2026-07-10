@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ParkIconComponent } from '../park-icon/park-icon.component';
 import { BehaviorSubject, filter, interval, switchMap } from 'rxjs';
@@ -40,7 +41,7 @@ import {
 @Component({
   selector: 'app-park-header',
   standalone: true,
-  imports: [FormsModule, SelectButtonModule, ParkIconComponent],
+  imports: [FormsModule, RouterLink, SelectButtonModule, ParkIconComponent],
   templateUrl: './park-header.component.html',
   styleUrl: './park-header.component.scss',
 })

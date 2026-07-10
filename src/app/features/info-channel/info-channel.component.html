@@ -1,0 +1,434 @@
+<div
+  class="board"
+  [attr.data-resort]="resort"
+  [class.is-transitioning]="transitionActive"
+  [attr.data-slide]="slideDirection"
+>
+  <header class="board-top">
+    <div class="brand-block">
+      <a routerLink="/" class="back-link" title="Back to live waits">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <span>App</span>
+      </a>
+      <div class="brand-text">
+        <p class="eyebrow">{{ appName }}</p>
+        <h1>Live Board</h1>
+      </div>
+    </div>
+
+    <div class="park-headline" [attr.data-key]="contentKey">
+      <span class="park-emoji" aria-hidden="true">{{ selectedPark.emoji }}</span>
+      <div>
+        <p class="resort-label">{{ theme.label }}</p>
+        <h2>{{ selectedPark.name }}</h2>
+      </div>
+    </div>
+
+    <div class="top-meta">
+      <div class="live-badge" [class.is-stale]="!!error">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="live-text">LIVE</span>
+        <span class="live-stamp">{{ liveStamp }}</span>
+      </div>
+      <div class="clock-chip">
+        <i class="pi pi-clock" aria-hidden="true"></i>
+        <span>{{ parkLocalTime }}</span>
+        <span class="clock-date">{{ clockNow | date: 'EEE MMM d' }}</span>
+      </div>
+      <button type="button" class="icon-btn" (click)="openSettings()" aria-label="Board settings">
+        <i class="pi pi-cog" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="park-tabs" role="tablist" aria-label="Parks">
+    @for (park of parks; track park.id; let i = $index) {
+      <button
+        type="button"
+        class="park-tab"
+        role="tab"
+        [class.active]="i === parkIndex"
+        [attr.aria-selected]="i === parkIndex"
+        (click)="selectPark(i)"
+      >
+        <app-park-icon [emoji]="park.emoji"></app-park-icon>
+        <span>{{ park.shortName }}</span>
+      </button>
+    }
+    <div class="rotation-track" aria-hidden="true">
+      <div class="rotation-fill" [style.width.%]="rotationProgress * 100"></div>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="error-strip">{{ error }}</div>
+  }
+
+  <main class="board-grid" [attr.data-slide]="slideDirection" [attr.data-key]="contentKey">
+    <!-- Hero / park pulse -->
+    <section class="panel hero-panel">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-orb"></div>
+        <div class="hero-grid-lines"></div>
+        <div class="hero-park-mark">{{ selectedPark.emoji }}</div>
+      </div>
+      <div class="hero-body">
+        <p class="panel-kicker">Park pulse</p>
+        <div class="hero-metrics">
+          <div class="metric">
+            <span class="metric-value">
+              {{ insights.averageWait !== null ? insights.averageWait + 'm' : '—' }}
+            </span>
+            <span class="metric-label">Avg wait</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ capacityLabel }}</span>
+            <span class="metric-label">Crowd</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ insights.openRideCount }}</span>
+            <span class="metric-label">Open rides</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ insights.downRideCount }}</span>
+            <span class="metric-label">Down</span>
+          </div>
+        </div>
+
+        <div class="avg-chart-block">
+          <div class="avg-chart-head">
+            <span>Avg wait trend</span>
+            <span class="avg-chart-sub">Park-wide · ~6h</span>
+          </div>
+          <div class="avg-chart-wrap">
+            <app-board-avg-wait-chart
+              [points]="avgWaitSeries"
+              [accent]="theme.accent"
+            ></app-board-avg-wait-chart>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Wait bands -->
+    <section class="panel waits-panel">
+      <div class="panel-head">
+        <h3>Live wait times</h3>
+        <span class="panel-sub">Standby · ranked by severity</span>
+      </div>
+      <div class="wait-bands">
+        @for (band of waitBandOrder; track band) {
+          <div class="wait-band" [class]="waitBandMeta[band].cssClass">
+            <header class="band-head">
+              <span class="band-title">{{ waitBandMeta[band].label }}</span>
+              <span class="band-hint">{{ waitBandMeta[band].hint }}</span>
+            </header>
+            <ul class="band-list">
+              @if (loading && !bandList(band).length) {
+                <li class="band-empty">Loading…</li>
+              } @else if (!bandList(band).length) {
+                <li class="band-empty">None right now</li>
+              } @else {
+                @for (ride of bandList(band); track ride.id) {
+                  <li>
+                    <span class="ride-main">
+                      <span class="ride-name">{{ ride.name }}</span>
+                      @if (ride.lightningLanePrice || ride.lightningLaneAvailable === false) {
+                        <span
+                          class="ride-ll"
+                          [class.sold-out]="ride.lightningLaneAvailable === false"
+                          [title]="illTitle(ride)"
+                        >
+                          <span class="ride-ll-bolt" aria-hidden="true">⚡</span>
+                          @if (ride.lightningLaneAvailable === false) {
+                            <span>Sold out</span>
+                          } @else {
+                            <span>{{ ride.lightningLanePrice }}</span>
+                          }
+                        </span>
+                      }
+                    </span>
+                    <span class="ride-wait">{{ ride.waitTime }}m</span>
+                  </li>
+                }
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Chart -->
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <h3>Longest waits</h3>
+        <span class="panel-sub">Top posted standbys</span>
+      </div>
+      <div class="chart-wrap">
+        <app-board-waits-chart
+          [rides]="chartRides"
+          [accent]="theme.accent"
+        ></app-board-waits-chart>
+      </div>
+    </section>
+
+    <!-- Weather — current + dual-line forecast -->
+    <section class="panel weather-panel">
+      <div class="panel-head">
+        <h3>Weather</h3>
+        <span class="panel-sub">{{ theme.label }}</span>
+      </div>
+      @if (forecast.weather; as weather) {
+        <div class="weather-body">
+          <div class="weather-now">
+            <span
+              class="weather-emoji"
+              [attr.data-variant]="weather.iconVariant"
+              aria-hidden="true"
+            >{{ weatherEmoji(weather.iconVariant) }}</span>
+            <div class="weather-now-text">
+              <p class="weather-temp">{{ weather.temperatureF }}°</p>
+              <p class="weather-label">{{ weather.label }}</p>
+            </div>
+            @if (weather.precipProbabilityNext3h !== null) {
+              <div class="weather-precip">
+                <span class="precip-value">{{ weather.precipProbabilityNext3h }}%</span>
+                <span class="precip-label">rain · 3h</span>
+              </div>
+            }
+          </div>
+          <div class="weather-chart-wrap">
+            <app-board-weather-chart
+              [hourly]="forecast.hourly"
+              [timezone]="timezone"
+              [accent]="theme.accent"
+            ></app-board-weather-chart>
+          </div>
+        </div>
+      } @else if (forecast.loading) {
+        <p class="panel-empty">Loading forecast…</p>
+      } @else {
+        <p class="panel-empty">{{ forecast.error || 'Weather unavailable' }}</p>
+      }
+    </section>
+
+    <!-- Hours + Lightning Lane (Disney only when priced) -->
+    <section class="panel hours-ll-panel" [class.has-ll]="showLightningLane">
+      <div class="hours-half">
+        <div class="panel-head">
+          <h3>Park hours</h3>
+          <span class="panel-sub">Today</span>
+        </div>
+        @if (!scheduleHours.length) {
+          <p class="panel-empty compact">No hours posted</p>
+        } @else {
+          <ul class="hours-list">
+            @for (entry of scheduleHours; track entry.type + entry.openLabel) {
+              <li>
+                <div class="hours-label">
+                  <strong>{{ entry.label }}</strong>
+                  @if (entry.subtitle) {
+                    <span>{{ entry.subtitle }}</span>
+                  }
+                </div>
+                <div class="hours-times">
+                  <span>{{ entry.openLabel }}</span>
+                  <span class="hours-dash">–</span>
+                  <span>{{ entry.closeLabel }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      @if (showLightningLane && lightningLane) {
+        <div class="ll-half">
+          <div class="panel-head">
+            <h3>
+              <span class="ll-title-bolt" aria-hidden="true">⚡</span>
+              Lightning Lane
+            </h3>
+            <span class="panel-sub">Park passes</span>
+          </div>
+          <div class="ll-prices">
+            <div class="ll-price" [class.sold-out]="lightningLane.multiPassSoldOut">
+              <span class="ll-label">Multi Pass</span>
+              <strong>{{ lightningLane.multiPass ?? '—' }}</strong>
+              @if (lightningLane.multiPassSoldOut) {
+                <span class="ll-status">Sold out</span>
+              }
+            </div>
+            <div class="ll-price" [class.sold-out]="lightningLane.premierPassSoldOut">
+              <span class="ll-label">Premier</span>
+              <strong>{{ lightningLane.premierPass ?? '—' }}</strong>
+              @if (lightningLane.premierPassSoldOut) {
+                <span class="ll-status">Sold out</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Up next -->
+    <section class="panel shows-panel">
+      <div class="panel-head">
+        <h3>Up next</h3>
+        <span class="panel-sub">Shows &amp; performances</span>
+      </div>
+      @if (!nextShows.length) {
+        <p class="panel-empty">No upcoming showtimes</p>
+      } @else {
+        <ul class="shows-list">
+          @for (show of nextShows; track show.id) {
+            <li>
+              <span class="show-time">{{ show.nextTime }}</span>
+              <span class="show-name">{{ show.name }}</span>
+              @if (show.moreCount > 0) {
+                <span class="show-more">+{{ show.moreCount }}</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Avoid -->
+    <section class="panel avoid-panel">
+      <div class="panel-head">
+        <h3>Rides to avoid</h3>
+        <span class="panel-sub">Down or extreme waits</span>
+      </div>
+      @if (!avoidList.length) {
+        <p class="panel-empty">Nothing extreme right now</p>
+      } @else {
+        <ul class="avoid-list">
+          @for (ride of avoidList; track ride.id) {
+            <li>
+              <span class="avoid-name">{{ ride.name }}</span>
+              <span class="avoid-reason" [class.is-down]="ride.reason === 'Down'">
+                {{ ride.reason }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Insights + graphs -->
+    <section class="panel insights-panel">
+      <div class="panel-head">
+        <h3>Insights</h3>
+        <span class="panel-sub">Park + network</span>
+      </div>
+      <div class="insights-layout">
+        <div class="insight-stats">
+          <div class="insight-card">
+            <span class="insight-label">Busiest</span>
+            <strong>{{ insights.busiestRide?.name || '—' }}</strong>
+            <span class="insight-meta">
+              @if (insights.busiestRide?.waitTime != null) {
+                {{ insights.busiestRide!.waitTime }} min
+              }
+            </span>
+          </div>
+          <div class="insight-card">
+            <span class="insight-label">Shortest</span>
+            <strong>{{ insights.shortestRide?.name || '—' }}</strong>
+            <span class="insight-meta">
+              @if (insights.shortestRide?.waitTime != null) {
+                {{ insights.shortestRide!.waitTime }} min
+              }
+            </span>
+          </div>
+          <div class="insight-card">
+            <span class="insight-label">Median wait</span>
+            <strong>
+              {{ insights.medianWait !== null ? insights.medianWait + 'm' : '—' }}
+            </strong>
+            <span class="insight-meta">{{ insights.under15Count }} under 15m</span>
+          </div>
+          <div class="insight-card network">
+            <span class="insight-label">Network</span>
+            <strong>{{ networkOpenRides }}</strong>
+            <span class="insight-meta">open rides · {{ parks.length }} parks</span>
+          </div>
+        </div>
+        <div class="insight-charts">
+          <div class="insight-chart-card">
+            <span class="insight-chart-label">Wait mix</span>
+            <div class="insight-chart-wrap">
+              <app-board-band-mix-chart
+                [major]="insights.majorCount"
+                [moderate]="insights.moderateCount"
+                [light]="insights.lightCount"
+              ></app-board-band-mix-chart>
+            </div>
+          </div>
+          <div class="insight-chart-card wide">
+            <span class="insight-chart-label">Network avg waits</span>
+            <div class="insight-chart-wrap">
+              <app-board-network-chart [parks]="networkParkAvgs"></app-board-network-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button
+    type="button"
+    class="nav-chevron nav-prev"
+    (click)="goPrev()"
+    aria-label="Previous park"
+  >
+    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+  </button>
+  <button
+    type="button"
+    class="nav-chevron nav-next"
+    (click)="goNext('manual')"
+    aria-label="Next park"
+  >
+    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+  </button>
+
+  <footer class="board-footer">
+    <span>Powered by ThemeParks.wiki · Weather via Open-Meteo</span>
+    <span class="footer-hint">Auto-rotates every {{ rotationMs / 1000 }}s · ← → to switch parks</span>
+  </footer>
+</div>
+
+<p-dialog
+  header="Board settings"
+  [(visible)]="settingsOpen"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(28rem, 92vw)' }"
+  styleClass="board-settings-dialog"
+  (onHide)="cancelSettings()"
+>
+  <div class="settings-body">
+    <label class="settings-label" for="rotation-slider">Park rotation interval</label>
+    <p class="settings-hint">How long each park stays on screen before the next one.</p>
+    <div class="settings-row">
+      <p-slider
+        inputId="rotation-slider"
+        [(ngModel)]="draftRotationSec"
+        [min]="minRotationMs / 1000"
+        [max]="maxRotationMs / 1000"
+        [step]="rotationStepMs / 1000"
+        styleClass="rotation-slider"
+      ></p-slider>
+      <span class="settings-value">{{ draftRotationSec }}s</span>
+    </div>
+    <p class="settings-future">More options (park filters, density) will land here later.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <button type="button" class="dialog-btn ghost" (click)="cancelSettings()">Cancel</button>
+    <button type="button" class="dialog-btn primary" (click)="saveSettings()">Save</button>
+  </ng-template>
+</p-dialog>

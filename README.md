@@ -6,6 +6,7 @@ Live data comes from [ThemeParks.wiki](https://themeparks.wiki). Weather uses [O
 
 ## Features
 
+- **Live Board (`/dashboard`)** — fullscreen hotel-style info channel that auto-rotates through all WDW + Universal parks (40s default, settings gear to change). Major / moderate / light wait bands, weather forecast, hours, Up Next shows, rides to avoid, insights, and Chart.js longest-wait bars. Left/right chevrons or arrow keys for manual advance. Linked from the main header as **Dashboard**.
 - **Historical wait trends** — Chart.js sparklines on ride cards and a detail page with today’s curve, hourly averages, and day-of-week patterns (Turso)
 - **Lightning Lane pricing** — live MLL/LLPP on the park Stats tab; individual ILL on ride cards and ride detail pages with end-of-day history (Turso)
 - **Live wait times** — color-coded cards with smooth fade updates on refresh
@@ -70,9 +71,23 @@ src/app/
     utils/         # wait-time formatting, show-time filtering, chart helpers
   features/
     dashboard/     # main UI — header, filters, cards, panels, bottom nav
+    info-channel/  # fullscreen Live Board (/dashboard) — park carousel + dense panels
     ride-detail/   # per-ride historical charts
   shared/components/wait-trend-chart/
 ```
+
+## Live Board (info channel)
+
+| Item | Detail |
+|------|--------|
+| **URL** | `/dashboard` (local: `http://localhost:4201/dashboard`, Pages: `…/HurryUpAndWait/dashboard`) |
+| **Entry** | **Dashboard** button in the main app header |
+| **Rotation** | All 7 parks in order; default **40s**; gear icon → interval only (15–120s, stored in `localStorage`) |
+| **Manual** | Semi-transparent side chevrons or ← / → keys |
+| **Data** | Same live ThemeParks.wiki feed as the home app, Open-Meteo hourly forecast, park capacity insights |
+
+No GitHub Actions changes are required — the existing `deploy-pages.yml` production build already lazy-loads the board chunk.
+
 
 ## Data architecture
 

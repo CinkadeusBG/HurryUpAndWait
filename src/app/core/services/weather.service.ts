@@ -18,7 +18,9 @@ import {
 } from '../constants/park.constants';
 import {
   OpenMeteoCurrentResponse,
+  ResortForecastState,
   ResortWeatherState,
+  WeatherHourlyPoint,
   WeatherSnapshot,
 } from '../models/weather.models';
 import { formatTemperatureF, mapWeatherCode } from '../utils/weather.utils';
@@ -26,6 +28,7 @@ import { formatTemperatureF, mapWeatherCode } from '../utils/weather.utils';
 @Injectable({ providedIn: 'root' })
 export class WeatherService {
   private readonly cache = new Map<ResortId, Observable<ResortWeatherState>>();
+  private readonly forecastCache = new Map<ResortId, Observable<ResortForecastState>>();
 
   constructor(private readonly http: HttpClient) {}
 
@@ -43,30 +46,60 @@ export class WeatherService {
     return this.cache.get(resort)!;
   }
 
+  /** Current conditions plus a short hourly strip (info-channel board). */
+  watchResortForecast(resort: ResortId): Observable<ResortForecastState> {
+    if (!this.forecastCache.has(resort)) {
+      const request$ = interval(WEATHER_REFRESH_INTERVAL_MS).pipe(
+        startWith(0),
+        switchMap((pollIndex) => this.fetchResortForecast(resort, pollIndex === 0)),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+      this.forecastCache.set(resort, request$);
+    }
+
+    return this.forecastCache.get(resort)!;
+  }
+
   private fetchResortWeather(
     resort: ResortId,
     showInitialLoading: boolean
   ): Observable<ResortWeatherState> {
+    return this.fetchResortForecast(resort, showInitialLoading).pipe(
+      map(
+        (state): ResortWeatherState => ({
+          loading: state.loading,
+          error: state.error,
+          weather: state.weather,
+        })
+      )
+    );
+  }
+
+  private fetchResortForecast(
+    resort: ResortId,
+    showInitialLoading: boolean
+  ): Observable<ResortForecastState> {
     const location = RESORT_WEATHER_LOCATIONS[resort];
     const params = new HttpParams()
       .set('latitude', location.latitude)
       .set('longitude', location.longitude)
       .set('current', 'temperature_2m,weather_code,is_day')
-      .set('hourly', 'precipitation_probability')
-      .set('forecast_hours', '6')
+      .set('hourly', 'temperature_2m,precipitation_probability,weather_code')
+      .set('forecast_hours', '8')
       .set('temperature_unit', 'fahrenheit')
       .set('timezone', location.timezone);
 
-    const emptyState: ResortWeatherState = {
+    const emptyState: ResortForecastState = {
       loading: true,
       error: null,
       weather: null,
+      hourly: [],
     };
 
     const request$ = this.http
       .get<OpenMeteoCurrentResponse>(`${WEATHER_API_BASE_URL}/forecast`, { params })
       .pipe(
-        map((response): ResortWeatherState => {
+        map((response): ResortForecastState => {
           const { label, iconVariant } = mapWeatherCode(
             response.current.weather_code,
             response.current.is_day === 1
@@ -90,6 +123,7 @@ export class WeatherService {
             loading: false,
             error: null,
             weather,
+            hourly: buildHourlyPoints(response, response.current.is_day === 1),
           };
         }),
         catchError(() =>
@@ -97,12 +131,61 @@ export class WeatherService {
             loading: false,
             error: 'Weather unavailable',
             weather: null,
-          } satisfies ResortWeatherState)
+            hourly: [],
+          } satisfies ResortForecastState)
         )
       );
 
     return showInitialLoading ? request$.pipe(startWith(emptyState)) : request$;
   }
+}
+
+function buildHourlyPoints(
+  response: OpenMeteoCurrentResponse,
+  fallbackIsDay: boolean
+): WeatherHourlyPoint[] {
+  const times = response.hourly?.time ?? [];
+  const temps = response.hourly?.temperature_2m ?? [];
+  const precip = response.hourly?.precipitation_probability ?? [];
+  const codes = response.hourly?.weather_code ?? [];
+  const currentMs = new Date(response.current.time).getTime();
+  const points: WeatherHourlyPoint[] = [];
+
+  for (let index = 0; index < times.length; index++) {
+    const time = times[index];
+    const hourMs = new Date(time).getTime();
+    if (hourMs < currentMs) {
+      continue;
+    }
+
+    const temp = temps[index];
+    if (typeof temp !== 'number' || !Number.isFinite(temp)) {
+      continue;
+    }
+
+    const code = typeof codes[index] === 'number' ? (codes[index] as number) : 0;
+    const hour = new Date(time).getHours();
+    const isDay = hour >= 6 && hour < 20 ? true : fallbackIsDay;
+    const mapped = mapWeatherCode(code, isDay);
+    const precipValue = precip[index];
+
+    points.push({
+      time,
+      temperatureF: formatTemperatureF(temp),
+      precipProbability:
+        typeof precipValue === 'number' && Number.isFinite(precipValue)
+          ? precipValue
+          : null,
+      label: mapped.label,
+      iconVariant: mapped.iconVariant,
+    });
+
+    if (points.length >= 6) {
+      break;
+    }
+  }
+
+  return points;
 }
 
 function resolvePrecipProbabilityNext3h(
