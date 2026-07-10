@@ -245,12 +245,12 @@
 
       @if (showLightningLane && lightningLane) {
         <div class="ll-half">
-          <div class="panel-head">
-            <h3>
-              <span class="ll-title-bolt" aria-hidden="true">⚡</span>
-              Lightning Lane
-            </h3>
-            <span class="panel-sub">Park passes</span>
+          <div class="panel-head ll-panel-head">
+            <span class="ll-title-bolt" aria-hidden="true">⚡</span>
+            <div class="ll-head-text">
+              <h3>Lightning Lane</h3>
+              <span class="panel-sub">Park passes</span>
+            </div>
           </div>
           <div class="ll-prices">
             <div class="ll-price" [class.sold-out]="lightningLane.multiPassSoldOut">
@@ -299,7 +299,7 @@
     <section class="panel avoid-panel">
       <div class="panel-head">
         <h3>Rides to avoid</h3>
-        <span class="panel-sub">Down or extreme waits</span>
+        <span class="panel-sub">Down, refurb, or extreme waits</span>
       </div>
       @if (!avoidList.length) {
         <p class="panel-empty">Nothing extreme right now</p>
@@ -308,7 +308,11 @@
           @for (ride of avoidList; track ride.id) {
             <li>
               <span class="avoid-name">{{ ride.name }}</span>
-              <span class="avoid-reason" [class.is-down]="ride.reason === 'Down'">
+              <span
+                class="avoid-reason"
+                [class.is-down]="ride.reason === 'Down'"
+                [class.is-refurb]="ride.reason === 'Refurb'"
+              >
                 {{ ride.reason }}
               </span>
             </li>

@@ -72,6 +72,7 @@ import {
   BOARD_MAX_ROTATION_MS,
   BOARD_MIN_ROTATION_MS,
   BOARD_ROTATION_STEP_MS,
+  UP_NEXT_SHOWS_LIMIT,
   WAIT_BAND_META,
   WaitBandId,
 } from './board.constants';
@@ -638,7 +639,12 @@ export class InfoChannelComponent implements OnInit {
   }
 
   private rebuildShows(): void {
-    this.nextShows = upNextShows(this.attractions);
+    this.nextShows = upNextShows(
+      this.attractions,
+      UP_NEXT_SHOWS_LIMIT,
+      Date.now(),
+      this.timezone
+    );
   }
 }
 

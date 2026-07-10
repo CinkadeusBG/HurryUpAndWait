@@ -4,7 +4,6 @@ import {
   formatScheduleEntryLabel,
   formatScheduleEntrySubtitle,
   formatShowTime,
-  getRelevantShowTimes,
   isMainListAttraction,
   isPerformanceShow,
   isRideEntity,
@@ -55,7 +54,7 @@ export function bandRides(
     .slice(0, limit);
 }
 
-/** Longest waits + down rides — what to skip right now. */
+/** Down rides, refurbishments, and extreme waits — what to skip right now. */
 export function ridesToAvoid(
   attractions: AttractionViewModel[],
   limit = RIDES_TO_AVOID_LIMIT
@@ -64,12 +63,20 @@ export function ridesToAvoid(
     .filter((item) => isRideEntity(item.entityType) && item.displayStatus === 'Down')
     .map((item) => ({ ...item, reason: 'Down' }));
 
+  const refurb = attractions
+    .filter(
+      (item) =>
+        isRideEntity(item.entityType) && item.displayStatus === 'Refurbishment'
+    )
+    .map((item) => ({ ...item, reason: 'Refurb' }));
+
   const major = openRidesWithPostedWait(attractions)
     .filter((item) => classifyWaitBand(item.waitTime) === 'major')
     .sort((a, b) => (b.waitTime ?? 0) - (a.waitTime ?? 0))
     .map((item) => ({ ...item, reason: `${item.waitTime} min` }));
 
-  const merged = [...down, ...major];
+  // Status issues first (down → refurb), then extreme waits.
+  const merged = [...down, ...refurb, ...major];
   const seen = new Set<string>();
   const unique: Array<AttractionViewModel & { reason: string }> = [];
 
@@ -96,25 +103,41 @@ export interface UpNextShow {
 
 export function upNextShows(
   attractions: AttractionViewModel[],
-  limit = UP_NEXT_SHOWS_LIMIT
+  limit = UP_NEXT_SHOWS_LIMIT,
+  now = Date.now(),
+  timezone = 'America/New_York'
 ): UpNextShow[] {
   return attractions
     .filter((item) => isPerformanceShow(item))
     .map((show) => {
-      const times = getRelevantShowTimes(show.showtimes);
-      if (!times.length) {
+      // Sort by real start timestamps — formatted labels like "9:00p" / "10:30a"
+      // are not chronological when string-sorted (e.g. "10:00p" < "9:00p").
+      const upcoming = [...show.showtimes]
+        .filter((slot) => new Date(slot.startTime).getTime() >= now)
+        .sort(
+          (a, b) =>
+            new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        );
+
+      if (!upcoming.length) {
         return null;
       }
+
+      const nextMs = new Date(upcoming[0].startTime).getTime();
       return {
         id: show.id,
         name: show.name,
-        nextTime: times[0],
-        moreCount: Math.max(0, times.length - 1),
-      } satisfies UpNextShow;
+        nextTime: formatShowTime(upcoming[0].startTime, timezone),
+        moreCount: Math.max(0, upcoming.length - 1),
+        nextMs,
+      };
     })
-    .filter((item): item is UpNextShow => item !== null)
-    .sort((a, b) => a.nextTime.localeCompare(b.nextTime))
-    .slice(0, limit);
+    .filter(
+      (item): item is UpNextShow & { nextMs: number } => item !== null
+    )
+    .sort((a, b) => a.nextMs - b.nextMs || a.name.localeCompare(b.name))
+    .slice(0, limit)
+    .map(({ nextMs: _nextMs, ...show }) => show);
 }
 
 export interface BoardParkHours {
