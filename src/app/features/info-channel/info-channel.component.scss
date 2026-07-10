@@ -298,6 +298,9 @@
 }
 
 .panel {
+  /* Override global styles.scss `.panel { margin: 0 1rem }` — that doubled
+     horizontal spacing between board cards vs the vertical grid gap. */
+  margin: 0;
   min-height: 0;
   min-width: 0;
   display: flex;
@@ -593,9 +596,32 @@
 }
 
 .ride-wait {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   padding-top: 0.05rem;
+  white-space: nowrap;
+}
+
+.ride-wait-value {
+  min-width: 1.6rem;
+  text-align: right;
+}
+
+.wait-caret {
+  font-size: 0.65rem;
+  line-height: 1;
+  font-weight: 900;
+
+  &.up {
+    color: #f87171;
+  }
+
+  &.down {
+    color: #4ade80;
+  }
 }
 
 .band-major .ride-wait {

@@ -149,7 +149,14 @@
                         </span>
                       }
                     </span>
-                    <span class="ride-wait">{{ ride.waitTime }}m</span>
+                    <span class="ride-wait">
+                      <span class="ride-wait-value">{{ ride.waitTime }}m</span>
+                      @if (waitTrend(ride.id) === 'up') {
+                        <span class="wait-caret up" title="Up since last refresh" aria-label="Wait trending up">▲</span>
+                      } @else if (waitTrend(ride.id) === 'down') {
+                        <span class="wait-caret down" title="Down since last refresh" aria-label="Wait trending down">▼</span>
+                      }
+                    </span>
                   </li>
                 }
               }

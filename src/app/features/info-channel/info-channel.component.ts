@@ -49,6 +49,7 @@ import {
   formatParkClockTime,
   formatRelativeUpdated,
   formatShowTime,
+  getStandbyWait,
   isClosedSectionAttraction,
   isMainListAttraction,
   isTrackableEntity,
@@ -165,11 +166,17 @@ export class InfoChannelComponent implements OnInit {
   avgWaitSeries: AvgWaitPoint[] = [];
   networkParkAvgs: NetworkParkAvg[] = [];
   lightningLane: ParkLightningLanePricing | null = null;
+  /** Per-ride wait change since the previous live poll (`up` / `down` / none). */
+  waitTrendById: Record<string, 'up' | 'down'> = {};
   bandLists: Record<WaitBandId, AttractionViewModel[]> = {
     major: [],
     moderate: [],
     light: [],
   };
+
+  /** Standby waits from the last completed refresh, used for caret trends. */
+  private readonly previousWaits = new Map<string, number | null>();
+  private lastTrendRefreshMs: number | null = null;
 
   forecast: ResortForecastState = {
     loading: true,
@@ -391,6 +398,10 @@ export class InfoChannelComponent implements OnInit {
     return this.bandLists[band];
   }
 
+  waitTrend(attractionId: string): 'up' | 'down' | null {
+    return this.waitTrendById[attractionId] ?? null;
+  }
+
   selectPark(index: number): void {
     if (index === this.parkIndex || index < 0 || index >= this.parks.length) {
       return;
@@ -571,6 +582,7 @@ export class InfoChannelComponent implements OnInit {
       moderate: bandRides(this.attractions, 'moderate'),
       light: bandRides(this.attractions, 'light'),
     };
+    this.updateWaitTrends(this.attractions);
 
     if (resort === 'wdw') {
       this.lightningLane = mergeParkLightningLanePricingWithSeenToday(
@@ -645,6 +657,69 @@ export class InfoChannelComponent implements OnInit {
       Date.now(),
       this.timezone
     );
+  }
+
+  /**
+   * Compare current posted waits to the previous live poll.
+   * Carets only recompute when live data refreshes (not on park rotation).
+   * Unchanged waits show no caret; first poll seeds a baseline only.
+   */
+  private updateWaitTrends(_attractions: AttractionViewModel[]): void {
+    void _attractions;
+    const refreshMs = this.lastRefreshed?.getTime() ?? null;
+    if (refreshMs === null) {
+      return;
+    }
+
+    const isNewRefresh = refreshMs !== this.lastTrendRefreshMs;
+    if (!isNewRefresh) {
+      // Park switch / re-render — keep existing carets for this poll cycle.
+      return;
+    }
+
+    const hasBaseline = this.lastTrendRefreshMs !== null;
+    const trends: Record<string, 'up' | 'down'> = {};
+
+    if (hasBaseline) {
+      for (const park of this.allParksState?.parks ?? []) {
+        for (const item of park.liveData) {
+          if (item.entityType !== 'ATTRACTION' || item.status !== 'OPERATING') {
+            continue;
+          }
+
+          const wait = getStandbyWait(item);
+          if (wait === null || !this.previousWaits.has(item.id)) {
+            continue;
+          }
+
+          const previous = this.previousWaits.get(item.id);
+          if (previous === undefined || previous === null) {
+            continue;
+          }
+
+          if (wait > previous) {
+            trends[item.id] = 'up';
+          } else if (wait < previous) {
+            trends[item.id] = 'down';
+          }
+        }
+      }
+    }
+
+    this.waitTrendById = trends;
+    this.snapshotWaitBaseline();
+    this.lastTrendRefreshMs = refreshMs;
+  }
+
+  private snapshotWaitBaseline(): void {
+    for (const park of this.allParksState?.parks ?? []) {
+      for (const item of park.liveData) {
+        if (item.entityType !== 'ATTRACTION' || item.status !== 'OPERATING') {
+          continue;
+        }
+        this.previousWaits.set(item.id, getStandbyWait(item));
+      }
+    }
   }
 }
 
