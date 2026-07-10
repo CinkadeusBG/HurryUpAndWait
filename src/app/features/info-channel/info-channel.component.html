@@ -1,7 +1,9 @@
 <div
   class="board"
   [attr.data-resort]="resort"
-  [class.is-transitioning]="transitionActive"
+  [class.is-transitioning]="transitionPhase !== 'idle'"
+  [class.phase-out]="transitionPhase === 'out'"
+  [class.phase-in]="transitionPhase === 'in'"
   [attr.data-slide]="slideDirection"
 >
   <header class="board-top">
@@ -16,7 +18,12 @@
       </div>
     </div>
 
-    <div class="park-headline" [attr.data-key]="contentKey">
+    <div
+      class="park-headline"
+      [class.phase-out]="transitionPhase === 'out'"
+      [class.phase-in]="transitionPhase === 'in'"
+      [attr.data-key]="contentKey"
+    >
       <span class="park-emoji" aria-hidden="true">{{ selectedPark.emoji }}</span>
       <div>
         <p class="resort-label">{{ theme.label }}</p>
@@ -64,7 +71,72 @@
     <div class="error-strip">{{ error }}</div>
   }
 
-  <main class="board-grid" [attr.data-slide]="slideDirection" [attr.data-key]="contentKey">
+  <main
+    class="board-grid"
+    [class.phase-out]="transitionPhase === 'out'"
+    [class.phase-in]="transitionPhase === 'in'"
+    [attr.data-slide]="slideDirection"
+    [attr.data-key]="contentKey"
+  >
+    <!-- Hours + Lightning Lane (Disney only when priced) — under park chips -->
+    <section class="panel hours-ll-panel" [class.has-ll]="showLightningLane">
+      <div class="hours-half">
+        <div class="panel-head">
+          <h3>Park hours</h3>
+          <span class="panel-sub">Today</span>
+        </div>
+        @if (!scheduleHours.length) {
+          <p class="panel-empty compact">No hours posted</p>
+        } @else {
+          <ul class="hours-list">
+            @for (entry of scheduleHours; track entry.type + entry.openLabel) {
+              <li>
+                <div class="hours-label">
+                  <strong>{{ entry.label }}</strong>
+                  @if (entry.subtitle) {
+                    <span>{{ entry.subtitle }}</span>
+                  }
+                </div>
+                <div class="hours-times">
+                  <span>{{ entry.openLabel }}</span>
+                  <span class="hours-dash">–</span>
+                  <span>{{ entry.closeLabel }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      @if (showLightningLane && lightningLane) {
+        <div class="ll-half">
+          <div class="panel-head ll-panel-head">
+            <span class="ll-title-bolt" aria-hidden="true">⚡</span>
+            <div class="ll-head-text">
+              <h3>Lightning Lane</h3>
+              <span class="panel-sub">Park passes</span>
+            </div>
+          </div>
+          <div class="ll-prices">
+            <div class="ll-price" [class.sold-out]="lightningLane.multiPassSoldOut">
+              <span class="ll-label">Multi Pass</span>
+              <strong>{{ lightningLane.multiPass ?? '—' }}</strong>
+              @if (lightningLane.multiPassSoldOut) {
+                <span class="ll-status">Sold out</span>
+              }
+            </div>
+            <div class="ll-price" [class.sold-out]="lightningLane.premierPassSoldOut">
+              <span class="ll-label">Premier</span>
+              <strong>{{ lightningLane.premierPass ?? '—' }}</strong>
+              @if (lightningLane.premierPassSoldOut) {
+                <span class="ll-status">Sold out</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+
     <!-- Hero / park pulse -->
     <section class="panel hero-panel">
       <div class="hero-visual" aria-hidden="true">
@@ -82,7 +154,7 @@
             <span class="metric-label">Avg wait</span>
           </div>
           <div class="metric">
-            <span class="metric-value">{{ capacityLabel }}</span>
+            <span class="metric-value" [ngClass]="capacityWordClass">{{ capacityLabel }}</span>
             <span class="metric-label">Crowd</span>
           </div>
           <div class="metric">
@@ -220,65 +292,6 @@
       }
     </section>
 
-    <!-- Hours + Lightning Lane (Disney only when priced) -->
-    <section class="panel hours-ll-panel" [class.has-ll]="showLightningLane">
-      <div class="hours-half">
-        <div class="panel-head">
-          <h3>Park hours</h3>
-          <span class="panel-sub">Today</span>
-        </div>
-        @if (!scheduleHours.length) {
-          <p class="panel-empty compact">No hours posted</p>
-        } @else {
-          <ul class="hours-list">
-            @for (entry of scheduleHours; track entry.type + entry.openLabel) {
-              <li>
-                <div class="hours-label">
-                  <strong>{{ entry.label }}</strong>
-                  @if (entry.subtitle) {
-                    <span>{{ entry.subtitle }}</span>
-                  }
-                </div>
-                <div class="hours-times">
-                  <span>{{ entry.openLabel }}</span>
-                  <span class="hours-dash">–</span>
-                  <span>{{ entry.closeLabel }}</span>
-                </div>
-              </li>
-            }
-          </ul>
-        }
-      </div>
-
-      @if (showLightningLane && lightningLane) {
-        <div class="ll-half">
-          <div class="panel-head ll-panel-head">
-            <span class="ll-title-bolt" aria-hidden="true">⚡</span>
-            <div class="ll-head-text">
-              <h3>Lightning Lane</h3>
-              <span class="panel-sub">Park passes</span>
-            </div>
-          </div>
-          <div class="ll-prices">
-            <div class="ll-price" [class.sold-out]="lightningLane.multiPassSoldOut">
-              <span class="ll-label">Multi Pass</span>
-              <strong>{{ lightningLane.multiPass ?? '—' }}</strong>
-              @if (lightningLane.multiPassSoldOut) {
-                <span class="ll-status">Sold out</span>
-              }
-            </div>
-            <div class="ll-price" [class.sold-out]="lightningLane.premierPassSoldOut">
-              <span class="ll-label">Premier</span>
-              <strong>{{ lightningLane.premierPass ?? '—' }}</strong>
-              @if (lightningLane.premierPassSoldOut) {
-                <span class="ll-status">Sold out</span>
-              }
-            </div>
-          </div>
-        </div>
-      }
-    </section>
-
     <!-- Up next -->
     <section class="panel shows-panel">
       <div class="panel-head">
@@ -314,7 +327,18 @@
         <ul class="avoid-list">
           @for (ride of avoidList; track ride.id) {
             <li>
-              <span class="avoid-name">{{ ride.name }}</span>
+              <div class="avoid-main">
+                <span class="avoid-name">{{ ride.name }}</span>
+                @if (downDetailFor(ride); as down) {
+                  <span class="avoid-down-meta">
+                    Since {{ down.since }}
+                    <span class="avoid-down-sep">·</span>
+                    {{ down.duration }}
+                  </span>
+                } @else if (isDownNotOpenedYet(ride)) {
+                  <span class="avoid-down-meta">Not opened yet</span>
+                }
+              </div>
               <span
                 class="avoid-reason"
                 [class.is-down]="ride.reason === 'Down'"
@@ -389,26 +413,9 @@
     </section>
   </main>
 
-  <button
-    type="button"
-    class="nav-chevron nav-prev"
-    (click)="goPrev()"
-    aria-label="Previous park"
-  >
-    <i class="pi pi-chevron-left" aria-hidden="true"></i>
-  </button>
-  <button
-    type="button"
-    class="nav-chevron nav-next"
-    (click)="goNext('manual')"
-    aria-label="Next park"
-  >
-    <i class="pi pi-chevron-right" aria-hidden="true"></i>
-  </button>
-
   <footer class="board-footer">
     <span>Powered by ThemeParks.wiki · Weather via Open-Meteo</span>
-    <span class="footer-hint">Auto-rotates every {{ rotationMs / 1000 }}s · ← → to switch parks</span>
+    <span class="footer-hint">Auto-rotates every {{ rotationMs / 1000 }}s · use park chips to switch</span>
   </footer>
 </div>
 

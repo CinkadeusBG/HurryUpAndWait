@@ -30,21 +30,7 @@
     var(--resort-mesh),
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 255, 255, 0.06), transparent 55%),
     var(--bg-base);
-  transition: background 0.65s ease;
-
-  &.is-transitioning::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-    background: radial-gradient(
-      ellipse at 50% 40%,
-      color-mix(in srgb, var(--accent-primary) 18%, transparent),
-      transparent 65%
-    );
-    animation: park-flash 0.7s ease forwards;
-  }
+  transition: background 0.9s ease;
 }
 
 .board-top {
@@ -106,7 +92,16 @@
   justify-content: center;
   gap: 0.7rem;
   min-width: 0;
-  animation: headline-swap 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+
+  &.phase-out {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  &.phase-in {
+    animation: soft-fade-in 0.72s ease both;
+  }
 
   .park-emoji {
     font-size: clamp(1.85rem, 2.4vw, 2.5rem);
@@ -282,19 +277,24 @@
 .board-grid {
   display: grid;
   grid-template-columns: 1.2fr 1.5fr 1.05fr;
-  grid-template-rows: minmax(0, 1.45fr) minmax(0, 0.95fr) auto minmax(0, 1.05fr);
+  grid-template-rows: auto minmax(0, 1.45fr) minmax(0, 0.95fr) minmax(0, 1.05fr);
   grid-template-areas:
+    'hoursll hoursll hoursll'
     'hero waits chart'
     'weather shows avoid'
-    'hoursll hoursll hoursll'
     'insights insights insights';
   gap: var(--board-gap);
   min-height: 0;
-  animation: board-enter-next 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+  transition: opacity 0.28s ease, transform 0.28s ease;
 
-.board-grid[data-slide='prev'] {
-  animation-name: board-enter-prev;
+  &.phase-out {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  &.phase-in {
+    animation: soft-fade-in 0.72s ease both;
+  }
 }
 
 .panel {
@@ -426,6 +426,27 @@
   font-weight: 800;
   line-height: 1.05;
   color: var(--accent-primary);
+
+  /* Crowd word only — same palette as park capacity dots / Quick Stats */
+  &.crowd-low {
+    color: #4ade80;
+  }
+
+  &.crowd-moderate {
+    color: #facc15;
+  }
+
+  &.crowd-high {
+    color: #f87171;
+  }
+
+  &.crowd-unknown {
+    color: #94a3b8;
+  }
+
+  &.crowd-closed {
+    color: #94a3b8;
+  }
 }
 
 .metric-label {
@@ -614,13 +635,30 @@
   font-size: 0.65rem;
   line-height: 1;
   font-weight: 900;
+  display: inline-block;
+  animation: wait-caret-pulse 1.8s ease-in-out infinite;
+  will-change: opacity, transform;
 
   &.up {
     color: #f87171;
+    filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.45));
   }
 
   &.down {
     color: #4ade80;
+    filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.4));
+  }
+}
+
+@keyframes wait-caret-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.18);
   }
 }
 
@@ -970,10 +1008,19 @@
 .avoid-list li {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.55rem;
   padding: 0.42rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: var(--fs-sm);
+}
+
+.avoid-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .avoid-name {
@@ -982,11 +1029,27 @@
   white-space: nowrap;
 }
 
+.avoid-down-meta {
+  font-size: var(--fs-xs);
+  color: #fbbf24;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avoid-down-sep {
+  opacity: 0.55;
+  margin: 0 0.15rem;
+}
+
 .avoid-reason {
   flex-shrink: 0;
   font-weight: 800;
   color: var(--band-major);
   font-variant-numeric: tabular-nums;
+  padding-top: 0.05rem;
 
   &.is-down {
     color: #fbbf24;
@@ -1091,42 +1154,6 @@
   min-height: 8rem;
 }
 
-.nav-chevron {
-  position: absolute;
-  top: 50%;
-  z-index: 20;
-  transform: translateY(-50%);
-  width: 2.85rem;
-  height: 4.75rem;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 0.75rem;
-  background: rgba(6, 10, 20, 0.28);
-  color: rgba(255, 255, 255, 0.55);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-  opacity: 0.55;
-
-  i {
-    font-size: 1.45rem;
-  }
-
-  &:hover {
-    opacity: 1;
-    color: #fff;
-    background: color-mix(in srgb, var(--accent-primary) 28%, rgba(6, 10, 20, 0.55));
-  }
-}
-
-.nav-prev {
-  left: 0.2rem;
-}
-
-.nav-next {
-  right: 0.2rem;
-}
-
 .board-footer {
   display: flex;
   justify-content: space-between;
@@ -1198,62 +1225,14 @@
   }
 }
 
-@keyframes headline-swap {
+@keyframes soft-fade-in {
   0% {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
-    filter: blur(4px);
+    transform: translateY(8px);
   }
   100% {
     opacity: 1;
     transform: none;
-    filter: none;
-  }
-}
-
-@keyframes board-enter-next {
-  0% {
-    opacity: 0;
-    transform: translateX(36px) scale(0.985);
-    filter: blur(6px);
-  }
-  55% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-@keyframes board-enter-prev {
-  0% {
-    opacity: 0;
-    transform: translateX(-36px) scale(0.985);
-    filter: blur(6px);
-  }
-  55% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-@keyframes park-flash {
-  0% {
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
   }
 }
 
@@ -1294,11 +1273,11 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
     grid-template-areas:
+      'hoursll hoursll'
       'hero hero'
       'waits waits'
       'chart weather'
       'shows avoid'
-      'hoursll hoursll'
       'insights insights';
     max-height: none;
   }
@@ -1323,22 +1302,19 @@
     min-height: 12rem;
   }
 
-  .nav-chevron {
-    display: none;
-  }
 }
 
 @media (max-width: 720px) {
   .board-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
+      'hoursll'
       'hero'
       'waits'
       'chart'
       'weather'
       'shows'
       'avoid'
-      'hoursll'
       'insights';
   }
 

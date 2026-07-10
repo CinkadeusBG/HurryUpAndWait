@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -45,12 +45,16 @@ import {
 import { ParkCapacityService } from '../../core/services/park-capacity.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
 import { WeatherService } from '../../core/services/weather.service';
+import { WaitTimeSnapshot } from '../../core/models/historical.models';
 import {
+  formatDownDuration,
+  formatDownSinceTime,
   formatParkClockTime,
   formatRelativeUpdated,
   formatShowTime,
   getStandbyWait,
   isClosedSectionAttraction,
+  isLocalDateToday,
   isMainListAttraction,
   isTrackableEntity,
   toAttractionViewModel,
@@ -108,6 +112,7 @@ import {
   standalone: true,
   imports: [
     DatePipe,
+    NgClass,
     FormsModule,
     RouterLink,
     DialogModule,
@@ -144,7 +149,8 @@ export class InfoChannelComponent implements OnInit {
   parkIndex = 0;
   slideDirection: 'next' | 'prev' | 'none' = 'none';
   contentKey = 0;
-  transitionActive = false;
+  /** Soft park crossfade: idle → out → in → idle */
+  transitionPhase: 'idle' | 'out' | 'in' = 'idle';
   settingsOpen = false;
   draftRotationSec = BOARD_DEFAULT_ROTATION_MS / 1000;
   rotationMs = BOARD_DEFAULT_ROTATION_MS;
@@ -168,15 +174,21 @@ export class InfoChannelComponent implements OnInit {
   lightningLane: ParkLightningLanePricing | null = null;
   /** Per-ride wait change since the previous live poll (`up` / `down` / none). */
   waitTrendById: Record<string, 'up' | 'down'> = {};
+  /** Last Turso standby snapshot per attraction — used for down “since / duration”. */
+  lastKnownWaitsById: Record<string, WaitTimeSnapshot> = {};
   bandLists: Record<WaitBandId, AttractionViewModel[]> = {
     major: [],
     moderate: [],
     light: [],
   };
 
-  /** Standby waits from the last completed refresh, used for caret trends. */
+  /**
+   * Prior standby waits for caret trends (seeded from Turso last-known, then
+   * each live poll). Compared against the current live values in Live Wait Times.
+   */
   private readonly previousWaits = new Map<string, number | null>();
   private lastTrendRefreshMs: number | null = null;
+  private historyTrendSeeded = false;
 
   forecast: ResortForecastState = {
     loading: true,
@@ -207,6 +219,43 @@ export class InfoChannelComponent implements OnInit {
         this.error = state.error;
         this.lastRefreshed = state.lastRefreshed;
         this.rebuildDerived();
+      });
+
+    // Last-known waits: down-time labels + first-load trend caret baselines.
+    this.historicalData
+      .getLastKnownWaitsForParks(this.parks.map((park) => park.id))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((lastWaits) => {
+        this.lastKnownWaitsById = lastWaits;
+
+        if (this.historyTrendSeeded) {
+          return;
+        }
+        this.historyTrendSeeded = true;
+
+        const historyBaseline = new Map<string, number>();
+        for (const [attractionId, snapshot] of Object.entries(lastWaits)) {
+          if (snapshot.waitTime !== null && Number.isFinite(snapshot.waitTime)) {
+            historyBaseline.set(attractionId, snapshot.waitTime as number);
+          }
+        }
+
+        if (!historyBaseline.size || !this.allParksState?.parks.length) {
+          for (const [id, wait] of historyBaseline) {
+            this.previousWaits.set(id, wait);
+          }
+          return;
+        }
+
+        if (this.lastTrendRefreshMs === null) {
+          for (const [id, wait] of historyBaseline) {
+            this.previousWaits.set(id, wait);
+          }
+          this.recomputeWaitTrendsFromBaseline();
+          return;
+        }
+
+        this.waitTrendById = this.computeTrendsAgainst(historyBaseline);
       });
 
     this.parkIndex$
@@ -336,6 +385,24 @@ export class InfoChannelComponent implements OnInit {
     return capacityLevelShortLabel(score.level);
   }
 
+  /** Text color class for Park Pulse crowd word (matches main-app capacity palette). */
+  get capacityWordClass(): string {
+    if (!this.parkOpenByPark[this.selectedPark.id]) {
+      return 'crowd-closed';
+    }
+    const score = this.capacityScore;
+    switch (score?.level) {
+      case 'low':
+        return 'crowd-low';
+      case 'moderate':
+        return 'crowd-moderate';
+      case 'high':
+        return 'crowd-high';
+      default:
+        return 'crowd-unknown';
+    }
+  }
+
   get capacityDetail(): string {
     const score = this.capacityScore;
     if (!score) {
@@ -400,6 +467,38 @@ export class InfoChannelComponent implements OnInit {
 
   waitTrend(attractionId: string): 'up' | 'down' | null {
     return this.waitTrendById[attractionId] ?? null;
+  }
+
+  /**
+   * Down-ride detail for Rides to Avoid (same rules as attraction cards):
+   * last known standby today → “Since 2:15p” + “45 min”.
+   */
+  downDetailFor(
+    ride: AttractionViewModel & { reason: string }
+  ): { since: string; duration: string } | null {
+    void this.clockNow;
+    if (ride.reason !== 'Down' && ride.displayStatus !== 'Down') {
+      return null;
+    }
+
+    const last = this.lastKnownWaitsById[ride.id];
+    if (!last || !isLocalDateToday(last.timestamp, this.timezone)) {
+      return null;
+    }
+
+    return {
+      since: formatDownSinceTime(last.timestamp, this.timezone),
+      duration: formatDownDuration(last.timestamp),
+    };
+  }
+
+  /** Down but last standby wasn’t today (same as main app “Not opened yet”). */
+  isDownNotOpenedYet(ride: AttractionViewModel & { reason: string }): boolean {
+    if (ride.reason !== 'Down' && ride.displayStatus !== 'Down') {
+      return false;
+    }
+    const last = this.lastKnownWaitsById[ride.id];
+    return !!last && !isLocalDateToday(last.timestamp, this.timezone);
   }
 
   selectPark(index: number): void {
@@ -493,25 +592,35 @@ export class InfoChannelComponent implements OnInit {
     direction: 'next' | 'prev',
     resetTimer: boolean
   ): void {
+    if (index === this.parkIndex || this.transitionPhase !== 'idle') {
+      return;
+    }
+
     this.slideDirection = direction;
-    this.transitionActive = true;
     if (this.transitionTimer) {
       clearTimeout(this.transitionTimer);
     }
-    this.transitionTimer = setTimeout(() => {
-      this.transitionActive = false;
-    }, 700);
 
-    this.parkIndex = index;
-    this.parkIndex$.next(index);
-    this.contentKey += 1;
-    this.applyTheme();
-    this.rebuildDerived();
-    if (resetTimer) {
-      this.resetRotationTimer();
-    } else {
-      this.rotationProgress = 0;
-    }
+    // Gentle crossfade: ease out current park, swap content, ease in next.
+    this.transitionPhase = 'out';
+    this.transitionTimer = setTimeout(() => {
+      this.parkIndex = index;
+      this.parkIndex$.next(index);
+      this.contentKey += 1;
+      this.applyTheme();
+      this.rebuildDerived();
+      if (resetTimer) {
+        this.resetRotationTimer();
+      } else {
+        this.rotationProgress = 0;
+      }
+
+      this.transitionPhase = 'in';
+      this.transitionTimer = setTimeout(() => {
+        this.transitionPhase = 'idle';
+        this.transitionTimer = null;
+      }, 720);
+    }, 280);
   }
 
   private resetRotationTimer(): void {
@@ -660,9 +769,8 @@ export class InfoChannelComponent implements OnInit {
   }
 
   /**
-   * Compare current posted waits to the previous live poll.
-   * Carets only recompute when live data refreshes (not on park rotation).
-   * Unchanged waits show no caret; first poll seeds a baseline only.
+   * Live Wait Times carets: compare current posted waits to the prior baseline
+   * (Turso last-known, then each live poll). Recomputes only on new live data.
    */
   private updateWaitTrends(_attractions: AttractionViewModel[]): void {
     void _attractions;
@@ -677,38 +785,49 @@ export class InfoChannelComponent implements OnInit {
       return;
     }
 
-    const hasBaseline = this.lastTrendRefreshMs !== null;
+    this.recomputeWaitTrendsFromBaseline();
+    this.snapshotWaitBaseline();
+    this.lastTrendRefreshMs = refreshMs;
+  }
+
+  /** Build up/down map from previousWaits vs current live operating rides. */
+  private recomputeWaitTrendsFromBaseline(): void {
+    this.waitTrendById = this.computeTrendsAgainst(this.previousWaits);
+  }
+
+  private computeTrendsAgainst(
+    baseline: Map<string, number | null> | Map<string, number>
+  ): Record<string, 'up' | 'down'> {
     const trends: Record<string, 'up' | 'down'> = {};
+    if (!baseline.size || !this.allParksState?.parks.length) {
+      return trends;
+    }
 
-    if (hasBaseline) {
-      for (const park of this.allParksState?.parks ?? []) {
-        for (const item of park.liveData) {
-          if (item.entityType !== 'ATTRACTION' || item.status !== 'OPERATING') {
-            continue;
-          }
+    for (const park of this.allParksState.parks) {
+      for (const item of park.liveData) {
+        if (item.entityType !== 'ATTRACTION' || item.status !== 'OPERATING') {
+          continue;
+        }
 
-          const wait = getStandbyWait(item);
-          if (wait === null || !this.previousWaits.has(item.id)) {
-            continue;
-          }
+        const wait = getStandbyWait(item);
+        if (wait === null || !baseline.has(item.id)) {
+          continue;
+        }
 
-          const previous = this.previousWaits.get(item.id);
-          if (previous === undefined || previous === null) {
-            continue;
-          }
+        const previous = baseline.get(item.id);
+        if (previous === undefined || previous === null) {
+          continue;
+        }
 
-          if (wait > previous) {
-            trends[item.id] = 'up';
-          } else if (wait < previous) {
-            trends[item.id] = 'down';
-          }
+        if (wait > previous) {
+          trends[item.id] = 'up';
+        } else if (wait < previous) {
+          trends[item.id] = 'down';
         }
       }
     }
 
-    this.waitTrendById = trends;
-    this.snapshotWaitBaseline();
-    this.lastTrendRefreshMs = refreshMs;
+    return trends;
   }
 
   private snapshotWaitBaseline(): void {
