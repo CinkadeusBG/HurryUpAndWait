@@ -29,7 +29,12 @@ jobs:
 
       - run: npm run build -- --base-href /${{ github.event.repository.name }}/
 
-      - run: touch dist/orlando-park-pulse/browser/.nojekyll
+      # SPA deep links (/dashboard, /ride/...) 404 on GitHub Pages unless a fallback
+      # exists. Serving the app shell as 404.html lets Angular boot and route client-side.
+      - name: SPA fallback for deep links
+        run: |
+          cp dist/orlando-park-pulse/browser/index.html dist/orlando-park-pulse/browser/404.html
+          touch dist/orlando-park-pulse/browser/.nojekyll
 
       - uses: actions/configure-pages@v5
 

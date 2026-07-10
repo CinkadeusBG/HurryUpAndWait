@@ -86,7 +86,7 @@ src/app/
 | **Manual** | Semi-transparent side chevrons or ← / → keys |
 | **Data** | Same live ThemeParks.wiki feed as the home app, Open-Meteo hourly forecast, park capacity insights |
 
-No GitHub Actions changes are required — the existing `deploy-pages.yml` production build already lazy-loads the board chunk.
+Deploy uses the existing `deploy-pages.yml` workflow. After build it copies `index.html` → `404.html` so deep links like `/dashboard` work on GitHub Pages (project sites have no server rewrite for SPAs).
 
 
 ## Data architecture

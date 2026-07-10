@@ -343,7 +343,7 @@ Register the route in `app.routes.ts` and link ride titles from `attraction-card
 
 ### GitHub Pages deploy
 
-`deploy-pages.yml` builds with `--base-href /{repo-name}/` and deploys on every push to `main`. Historical charts read Turso from the browser — no redeploy needed when the Docker collector adds snapshots.
+`deploy-pages.yml` builds with `--base-href /{repo-name}/` and deploys on every push to `main`. It also copies `index.html` to `404.html` so SPA deep links (`/dashboard`, `/ride/...`) work when opened or refreshed on GitHub Pages. Historical charts read Turso from the browser — no redeploy needed when the Docker collector adds snapshots.
 
 ## Build for production
 
