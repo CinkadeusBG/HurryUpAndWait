@@ -203,6 +203,24 @@
   align-items: stretch;
 }
 
+.resort-toggles {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.resort-full,
+.resort-short {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.resort-short {
+  display: none;
+}
+
 .favorites-toggle {
   display: inline-flex;
   align-items: center;
@@ -217,6 +235,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
@@ -246,6 +265,49 @@
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.12);
   font-size: 0.72rem;
+}
+
+.hidden-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-radius: 0.75rem;
+  padding: 0 0.85rem;
+  min-height: 44px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  i {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  &.active {
+    background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+    border-color: color-mix(in srgb, var(--accent-primary) 70%, transparent);
+    color: var(--text-primary);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent-glow) 35%, transparent);
+
+    i {
+      color: var(--accent-primary);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
 }
 
 .park-selector-row {
@@ -283,7 +345,7 @@
   align-items: center;
   gap: 0.35rem;
   flex: 0 0 auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
@@ -408,6 +470,7 @@
 
 :host ::ng-deep .resort-toggle {
   flex: 1;
+  width: 100%;
   min-width: 0;
 
   .p-selectbutton {
@@ -440,17 +503,80 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 720px) {
+  .park-header {
+    padding: max(0.75rem, env(safe-area-inset-top)) 0.75rem 0.75rem;
+  }
+
+  .brand-row {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .brand-lockup {
+    flex: 1 1 auto;
+  }
+
+  .brand-mark {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .header-actions {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .board-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .board-link {
+    position: relative;
+    width: 2.5rem;
+    justify-content: center;
+    padding: 0;
+  }
+
   .park-time-label {
     display: none;
   }
 
-  .brand-mark {
-    width: 2.4rem;
-    height: 2.4rem;
+  .selector-row {
+    flex-wrap: wrap;
   }
 
-  .title {
-    font-size: 1.25rem;
+  .resort-toggles {
+    flex: 1 1 100%;
+  }
+
+  .resort-full {
+    display: none;
+  }
+
+  .resort-short {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .favorites-toggle,
+  .hidden-toggle {
+    flex: 1;
+    justify-content: center;
+    padding-inline: 0.55rem;
   }
 }

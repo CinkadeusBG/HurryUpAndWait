@@ -9,7 +9,20 @@
       <p-skeleton width="60%" height="2rem" borderRadius="12px"></p-skeleton>
       <p-skeleton width="40%" height="1rem" borderRadius="8px"></p-skeleton>
     } @else if (history) {
-      <h1>{{ history.attractionName }}</h1>
+      <div class="detail-title-row">
+        <h1>{{ history.attractionName }}</h1>
+        <button
+          type="button"
+          class="hide-attraction-btn has-label"
+          [class.is-hidden]="attractionHidden"
+          (click)="toggleHidden()"
+          [attr.aria-pressed]="attractionHidden"
+          [attr.aria-label]="attractionHidden ? 'Unhide ' + history.attractionName : 'Hide ' + history.attractionName"
+        >
+          <i class="pi pi-ban" aria-hidden="true"></i>
+          <span>{{ attractionHidden ? 'Hidden' : 'Hide' }}</span>
+        </button>
+      </div>
       <p class="detail-subtitle">{{ parkName }} · {{ resortLabel }}</p>
     }
   </header>

@@ -49,6 +49,7 @@ import {
     '[class.status-down]': 'attraction.displayStatus === "Down"',
     '[class.status-closed]': 'attraction.displayStatus === "Closed"',
     '[class.status-refurbishment]': 'attraction.displayStatus === "Refurbishment"',
+    '[class.is-user-hidden]': 'hidden',
   },
 })
 export class AttractionCardComponent implements OnInit, OnChanges {
@@ -60,7 +61,9 @@ export class AttractionCardComponent implements OnInit, OnChanges {
   @Input() parkTimezone = 'America/New_York';
   @Input() trendEntries: WaitTimeSnapshot[] = [];
   @Input() lastKnownWait: WaitTimeSnapshot | null = null;
+  @Input() hidden = false;
   @Output() favoriteToggle = new EventEmitter<string>();
+  @Output() hideToggle = new EventEmitter<string>();
 
   readonly showTimePreviewLimit = SHOW_TIME_PREVIEW_LIMIT;
   displayedWaitValue = '';
@@ -289,5 +292,11 @@ export class AttractionCardComponent implements OnInit, OnChanges {
 
   onFavoriteClick(): void {
     this.favoriteToggle.emit(this.attraction.id);
+  }
+
+  onHideClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.hideToggle.emit(this.attraction.id);
   }
 }

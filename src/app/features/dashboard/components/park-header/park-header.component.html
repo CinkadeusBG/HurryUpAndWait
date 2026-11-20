@@ -98,15 +98,28 @@
   </div>
 
   <div class="selector-row">
-    <p-selectButton
-      [options]="resortOptions"
-      [ngModel]="selectedResort"
-      (ngModelChange)="onResortSelect($event)"
-      optionLabel="label"
-      optionValue="value"
-      styleClass="resort-toggle"
-      [disabled]="favoritesMode"
-    ></p-selectButton>
+    <div class="resort-toggles">
+      <p-selectButton
+        class="resort-full"
+        [options]="resortOptions"
+        [ngModel]="selectedResort"
+        (ngModelChange)="onResortSelect($event)"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="resort-toggle"
+        [disabled]="favoritesMode"
+      ></p-selectButton>
+      <p-selectButton
+        class="resort-short"
+        [options]="resortOptionsShort"
+        [ngModel]="selectedResort"
+        (ngModelChange)="onResortSelect($event)"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="resort-toggle"
+        [disabled]="favoritesMode"
+      ></p-selectButton>
+    </div>
 
     <button
       type="button"
@@ -119,6 +132,22 @@
       <span>Favorites</span>
       @if (favoriteCount > 0) {
         <span class="favorites-count">{{ favoriteCount }}</span>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="hidden-toggle"
+      [class.active]="showHidden"
+      (click)="onShowHiddenToggle()"
+      [attr.aria-pressed]="showHidden"
+      [attr.aria-label]="showHiddenLabel"
+      [title]="showHiddenLabel"
+    >
+      <i [class]="showHidden ? 'pi pi-eye' : 'pi pi-eye-slash'" aria-hidden="true"></i>
+      <span class="hidden-toggle-label">{{ showHidden ? 'All' : 'Hidden' }}</span>
+      @if (hiddenCount > 0) {
+        <span class="favorites-count">{{ hiddenCount }}</span>
       }
     </button>
   </div>

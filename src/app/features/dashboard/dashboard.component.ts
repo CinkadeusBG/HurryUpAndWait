@@ -39,6 +39,7 @@ import {
   SortOption,
 } from '../../core/models/theme-parks.models';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { HiddenAttractionsService } from '../../core/services/hidden-attractions.service';
 import { ParkCapacityService } from '../../core/services/park-capacity.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
 import { ParkCapacityScore } from '../../core/utils/park-capacity.utils';
@@ -73,6 +74,7 @@ const PREF_KEYS = {
   resort: 'orlando-park-pulse-resort',
   park: 'orlando-park-pulse-park',
   favoritesMode: 'orlando-park-pulse-favorites-mode',
+  showHidden: 'orlando-park-pulse-show-hidden',
 } as const;
 
 @Component({
@@ -99,14 +101,17 @@ export class DashboardComponent implements OnInit {
   private readonly historicalData = inject(HistoricalDataService);
   private readonly parkCapacityService = inject(ParkCapacityService);
   private readonly favoritesService = inject(FavoritesService);
+  private readonly hiddenAttractions = inject(HiddenAttractionsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject(ElementRef<HTMLElement>);
 
   selectedResort: ResortId = this.loadResort();
   selectedParkId = this.loadParkId();
   favoritesMode = this.loadFavoritesMode();
+  showHidden = this.loadShowHidden();
   activeTab: BottomNavTab = 'waits';
   favoriteCount = this.favoritesService.getSnapshot().size;
+  hiddenIds: ReadonlySet<string> = this.hiddenAttractions.getSnapshot();
 
   search = '';
   sort: SortOption = 'shortest-wait';
@@ -172,6 +177,12 @@ export class DashboardComponent implements OnInit {
         this.rebuildViewModels();
       });
 
+    this.hiddenAttractions.hidden$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((hiddenIds) => {
+        this.hiddenIds = hiddenIds;
+      });
+
     this.themeParksService
       .watchWdwParkLightningLanePricing()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -224,11 +235,29 @@ export class DashboardComponent implements OnInit {
   }
 
   get openAttractions(): AttractionViewModel[] {
-    return this.filteredAttractions.filter((item) => isMainListAttraction(item));
+    return this.filteredAttractions.filter(
+      (item) => isMainListAttraction(item) && this.isListed(item)
+    );
   }
 
   get closedAttractions(): AttractionViewModel[] {
-    return this.allAttractions.filter((item) => isClosedSectionAttraction(item));
+    return this.allAttractions.filter(
+      (item) => isClosedSectionAttraction(item) && this.isListed(item)
+    );
+  }
+
+  get hiddenInViewCount(): number {
+    return this.allAttractions.filter((item) => this.hiddenIds.has(item.id)).length;
+  }
+
+  get concealedShowCount(): number {
+    if (this.showHidden) {
+      return 0;
+    }
+
+    return this.allAttractions.filter(
+      (item) => isPerformanceShow(item) && this.hiddenIds.has(item.id)
+    ).length;
   }
 
   get filteredAttractions(): AttractionViewModel[] {
@@ -237,7 +266,9 @@ export class DashboardComponent implements OnInit {
   }
 
   get shows(): AttractionViewModel[] {
-    return this.allAttractions.filter((item) => isPerformanceShow(item));
+    return this.allAttractions.filter(
+      (item) => isPerformanceShow(item) && this.isListed(item)
+    );
   }
 
   get theme() {
@@ -253,6 +284,13 @@ export class DashboardComponent implements OnInit {
   }
 
   get emptyStateMessage(): string {
+    const concealed = this.concealedListCount;
+    if (concealed > 0) {
+      const noun = concealed === 1 ? 'attraction is' : 'attractions are';
+      const pronoun = concealed === 1 ? 'it' : 'them';
+      return `${concealed} matching ${noun} hidden. Use Show hidden to see ${pronoun}.`;
+    }
+
     if (this.favoritesMode) {
       return this.favoriteCount === 0
         ? 'Tap the star on any attraction to build your favorites list.'
@@ -299,6 +337,19 @@ export class DashboardComponent implements OnInit {
 
   onFavoriteToggle(id: string): void {
     this.favoritesService.toggleFavorite(id);
+  }
+
+  onHideToggle(id: string): void {
+    this.hiddenAttractions.toggleHidden(id);
+  }
+
+  onShowHiddenChange(enabled: boolean): void {
+    this.showHidden = enabled;
+    localStorage.setItem(PREF_KEYS.showHidden, String(enabled));
+  }
+
+  isAttractionHidden(id: string): boolean {
+    return this.hiddenIds.has(id);
   }
 
   setActiveTab(tab: BottomNavTab): void {
@@ -445,6 +496,28 @@ export class DashboardComponent implements OnInit {
 
   private loadFavoritesMode(): boolean {
     return localStorage.getItem(PREF_KEYS.favoritesMode) === 'true';
+  }
+
+  private loadShowHidden(): boolean {
+    return localStorage.getItem(PREF_KEYS.showHidden) === 'true';
+  }
+
+  private isListed(item: AttractionViewModel): boolean {
+    return this.showHidden || !this.hiddenIds.has(item.id);
+  }
+
+  private get concealedListCount(): number {
+    if (this.showHidden) {
+      return 0;
+    }
+
+    const openConcealed = this.filteredAttractions.filter(
+      (item) => isMainListAttraction(item) && this.hiddenIds.has(item.id)
+    ).length;
+    const closedConcealed = this.allAttractions.filter(
+      (item) => isClosedSectionAttraction(item) && this.hiddenIds.has(item.id)
+    ).length;
+    return openConcealed + closedConcealed;
   }
 
   private clearResortCapacityState(): void {

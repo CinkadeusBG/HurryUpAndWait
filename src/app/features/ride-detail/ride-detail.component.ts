@@ -22,6 +22,7 @@ import {
   IllDailySnapshot,
   WaitTimeSnapshot,
 } from '../../core/models/historical.models';
+import { HiddenAttractionsService } from '../../core/services/hidden-attractions.service';
 import { HistoricalDataService } from '../../core/services/historical-data.service';
 import { ThemeParksService } from '../../core/services/theme-parks.service';
 import {
@@ -65,6 +66,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly historicalData = inject(HistoricalDataService);
+  private readonly hiddenAttractions = inject(HiddenAttractionsService);
   private readonly themeParksService = inject(ThemeParksService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -76,6 +78,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   resort: 'wdw' | 'universal' = 'wdw';
   accent = RESORT_THEMES.wdw.accent;
 
+  attractionHidden = false;
   loading = true;
   error: string | null = null;
   history: AttractionHistoryBundle | null = null;
@@ -102,6 +105,12 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   private illChart: Chart<'bar'> | null = null;
 
   ngOnInit(): void {
+    this.hiddenAttractions.hidden$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.attractionHidden = this.hiddenAttractions.isHidden(this.attractionId);
+      });
+
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const parkId = params.get('parkId');
       const attractionId = params.get('attractionId');
@@ -113,6 +122,7 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.parkId = parkId;
       this.attractionId = attractionId;
+      this.attractionHidden = this.hiddenAttractions.isHidden(attractionId);
 
       const park = getParkById(parkId);
       this.parkName = park?.shortName ?? 'Park';
@@ -180,6 +190,14 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get illSoldOutDays(): number {
     return this.illHistory.filter((entry) => entry.soldOut).length;
+  }
+
+  toggleHidden(): void {
+    if (!this.attractionId) {
+      return;
+    }
+
+    this.hiddenAttractions.toggleHidden(this.attractionId);
   }
 
   private loadHistory(): void {
@@ -362,8 +380,9 @@ export class RideDetailComponent implements OnInit, AfterViewInit, OnDestroy {
           scales: {
             x: {
               ticks: {
-                maxTicksLimit: 16,
-                maxRotation: 45,
+                maxTicksLimit: window.innerWidth < 640 ? 6 : 16,
+                maxRotation: window.innerWidth < 640 ? 0 : 45,
+                autoSkip: true,
               },
             },
           },

@@ -17,11 +17,30 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.show-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
 .show-name {
   margin: 0;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 0.98rem;
   font-weight: 700;
+}
+
+.show-item.is-user-hidden {
+  border-style: dashed;
+  border-color: rgba(248, 113, 113, 0.4);
+
+  .show-name,
+  .show-times {
+    opacity: 0.58;
+  }
 }
 
 .show-times {

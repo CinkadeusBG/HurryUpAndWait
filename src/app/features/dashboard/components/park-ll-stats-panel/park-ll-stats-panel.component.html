@@ -75,8 +75,8 @@
           <tbody>
             @for (row of historyRows; track row.localDate) {
               <tr>
-                <td>{{ row.dateLabel }}</td>
-                <td>
+                <td data-label="Date">{{ row.dateLabel }}</td>
+                <td data-label="Multi Pass">
                   @if (row.multiPass) {
                     <div class="price-cell">
                       <span class="price-chip" [class.is-sold-out]="row.multiPassSoldOut">
@@ -91,7 +91,7 @@
                     <span class="muted">—</span>
                   }
                 </td>
-                <td>
+                <td data-label="Premier Pass">
                   @if (row.premierPass) {
                     <div class="price-cell">
                       <span class="price-chip" [class.is-sold-out]="row.premierPassSoldOut">

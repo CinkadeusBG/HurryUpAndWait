@@ -75,6 +75,12 @@ import {
         height: 22rem;
       }
 
+      @media (max-width: 640px) {
+        .chart-shell.is-large {
+          height: 16rem;
+        }
+      }
+
       .chart-shell.is-empty canvas {
         opacity: 0.15;
       }

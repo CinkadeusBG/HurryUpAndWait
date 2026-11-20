@@ -11,7 +11,9 @@
           [parkTimezone]="parkTimezone"
           [trendEntries]="sparklineTrendFor(item.id)"
           [lastKnownWait]="sparklineLastWaitFor(item.id)"
+          [hidden]="isHidden(item.id)"
           (favoriteToggle)="favoriteToggle.emit($event)"
+          (hideToggle)="hideToggle.emit($event)"
         ></app-attraction-card>
       }
     </div>

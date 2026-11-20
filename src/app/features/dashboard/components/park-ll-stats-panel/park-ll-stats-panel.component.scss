@@ -173,8 +173,52 @@
   color: var(--text-muted);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .ll-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ll-history-table {
+    thead {
+      display: none;
+    }
+
+    tr {
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.1rem 0;
+      border-bottom: none;
+
+      &::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      &:first-child {
+        font-weight: 700;
+
+        &::before {
+          content: none;
+        }
+      }
+    }
+  }
+
+  .ll-stat-value {
+    font-size: 1.25rem;
   }
 }

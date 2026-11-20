@@ -71,10 +71,13 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   @Input() parkTimezone = 'America/New_York';
   @Input() favoritesMode = false;
   @Input() favoriteCount = 0;
+  @Input() showHidden = false;
+  @Input() hiddenCount = 0;
 
   @Output() resortChange = new EventEmitter<ResortId>();
   @Output() parkChange = new EventEmitter<string>();
   @Output() favoritesModeChange = new EventEmitter<boolean>();
+  @Output() showHiddenChange = new EventEmitter<boolean>();
 
   readonly appName = APP_NAME;
   readonly refreshRingCircumference = 2 * Math.PI * this.refreshRingRadius;
@@ -82,6 +85,11 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   readonly resortOptions = [
     { label: 'Walt Disney World', value: 'wdw' as ResortId },
     { label: 'Universal Orlando', value: 'universal' as ResortId },
+  ];
+
+  readonly resortOptionsShort = [
+    { label: 'Disney', value: 'wdw' as ResortId },
+    { label: 'Universal', value: 'universal' as ResortId },
   ];
 
   constructor() {
@@ -238,5 +246,21 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
 
   onFavoritesToggle(): void {
     this.favoritesModeChange.emit(!this.favoritesMode);
+  }
+
+  get showHiddenLabel(): string {
+    if (this.showHidden) {
+      return 'Showing hidden attractions. Tap to hide them again.';
+    }
+
+    if (this.hiddenCount > 0) {
+      return `Show ${this.hiddenCount} hidden attraction${this.hiddenCount === 1 ? '' : 's'}`;
+    }
+
+    return 'Show hidden attractions';
+  }
+
+  onShowHiddenToggle(): void {
+    this.showHiddenChange.emit(!this.showHidden);
   }
 }

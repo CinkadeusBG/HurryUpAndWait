@@ -12,6 +12,17 @@
   <div class="card-layout">
     <div class="card-main">
       <div class="card-header">
+        <button
+          type="button"
+          class="hide-attraction-btn"
+          [class.is-hidden]="hidden"
+          (click)="onHideClick($event)"
+          [attr.aria-pressed]="hidden"
+          [attr.aria-label]="hidden ? 'Unhide ' + attraction.name : 'Hide ' + attraction.name"
+          [title]="hidden ? 'Unhide attraction' : 'Hide attraction'"
+        >
+          <i class="pi pi-ban" aria-hidden="true"></i>
+        </button>
         @if (detailLink) {
           <a class="attraction-name attraction-link" [routerLink]="detailLink">
             {{ attraction.name }}

@@ -10,9 +10,12 @@
     [parkTimezone]="parkTimezone"
     [favoritesMode]="favoritesMode"
     [favoriteCount]="favoriteCount"
+    [showHidden]="showHidden"
+    [hiddenCount]="hiddenInViewCount"
     (resortChange)="onResortChange($event)"
     (parkChange)="onParkChange($event)"
     (favoritesModeChange)="onFavoritesModeChange($event)"
+    (showHiddenChange)="onShowHiddenChange($event)"
   ></app-park-header>
 
   @if (error) {
@@ -46,7 +49,9 @@
                 [parkTimezone]="parkTimezone"
                 [trendEntries]="sparklineTrendFor(attraction.id)"
                 [lastKnownWait]="sparklineLastWaitFor(attraction.id)"
+                [hidden]="isAttractionHidden(attraction.id)"
                 (favoriteToggle)="onFavoriteToggle($event)"
+                (hideToggle)="onHideToggle($event)"
               ></app-attraction-card>
             }
           </div>
@@ -60,7 +65,9 @@
           [parkTimezone]="parkTimezone"
           [sparklineTrends]="sparklineTrends"
           [sparklineLastWaits]="sparklineLastWaits"
+          [hiddenIds]="hiddenIds"
           (favoriteToggle)="onFavoriteToggle($event)"
+          (hideToggle)="onHideToggle($event)"
         ></app-closed-rides-panel>
       }
     }
@@ -74,7 +81,12 @@
     }
 
     @if (activeTab === 'shows') {
-      <app-show-times-panel [shows]="shows"></app-show-times-panel>
+      <app-show-times-panel
+        [shows]="shows"
+        [hiddenIds]="hiddenIds"
+        [concealedCount]="concealedShowCount"
+        (hideToggle)="onHideToggle($event)"
+      ></app-show-times-panel>
     }
 
     @if (activeTab === 'stats') {

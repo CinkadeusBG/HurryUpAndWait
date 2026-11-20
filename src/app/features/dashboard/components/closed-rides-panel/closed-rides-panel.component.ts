@@ -9,6 +9,9 @@ import { AttractionCardComponent } from '../attraction-card/attraction-card.comp
   imports: [AttractionCardComponent],
   templateUrl: './closed-rides-panel.component.html',
   styleUrl: './closed-rides-panel.component.scss',
+  host: {
+    style: 'display: block; min-width: 0',
+  },
 })
 export class ClosedRidesPanelComponent {
   @Input({ required: true }) closedAttractions: AttractionViewModel[] = [];
@@ -16,7 +19,9 @@ export class ClosedRidesPanelComponent {
   @Input() parkTimezone = 'America/New_York';
   @Input() sparklineTrends: Record<string, WaitTimeSnapshot[]> = {};
   @Input() sparklineLastWaits: Record<string, WaitTimeSnapshot> = {};
+  @Input() hiddenIds: ReadonlySet<string> = new Set();
   @Output() favoriteToggle = new EventEmitter<string>();
+  @Output() hideToggle = new EventEmitter<string>();
 
   sparklineTrendFor(attractionId: string): WaitTimeSnapshot[] {
     return this.sparklineTrends[attractionId] ?? [];
@@ -24,5 +29,9 @@ export class ClosedRidesPanelComponent {
 
   sparklineLastWaitFor(attractionId: string): WaitTimeSnapshot | null {
     return this.sparklineLastWaits[attractionId] ?? null;
+  }
+
+  isHidden(id: string): boolean {
+    return this.hiddenIds.has(id);
   }
 }
