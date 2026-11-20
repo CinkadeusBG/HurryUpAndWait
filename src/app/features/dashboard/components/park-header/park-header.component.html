@@ -1,4 +1,8 @@
-<header class="park-header glass-panel" [style.--resort-accent]="theme.accent">
+<header
+  class="park-header glass-panel"
+  [class.is-collapsed]="trayCollapsed"
+  [style.--resort-accent]="theme.accent"
+>
   <div class="brand-row">
     <div class="brand-lockup">
       <div class="brand-mark" aria-hidden="true">
@@ -26,9 +30,23 @@
           />
         </svg>
       </div>
-      <div>
-        <p class="eyebrow">{{ appName }}</p>
-        <h1 class="title">{{ favoritesMode ? 'My Favorites' : 'Live Wait Times' }}</h1>
+      <div class="compact-title-btn" (click)="onCompactTitleClick()">
+        <span class="title-copy">
+          <p class="eyebrow">{{ appName }}</p>
+          <h1 class="title">
+            <span class="title-full">{{ favoritesMode ? 'My Favorites' : 'Live Wait Times' }}</span>
+            <span class="title-compact">{{ compactTitle }}</span>
+          </h1>
+        </span>
+        <button
+          type="button"
+          class="compact-chevron-btn"
+          (click)="$event.stopPropagation(); onCompactTitleClick()"
+          [attr.aria-expanded]="isPhone ? !trayCollapsed : null"
+          [attr.aria-label]="compactTitleLabel"
+        >
+          <i class="compact-chevron pi pi-chevron-down" aria-hidden="true"></i>
+        </button>
       </div>
     </div>
     <div class="header-actions">
@@ -97,6 +115,8 @@
     </div>
   </div>
 
+  <div class="header-tray">
+    <div class="header-tray-inner">
   <div class="selector-row">
     <div class="resort-toggles">
       <p-selectButton
@@ -228,6 +248,8 @@
           [attr.stroke-dashoffset]="refreshRingOffset"
         ></circle>
       </svg>
+    </div>
+  </div>
     </div>
   </div>
 </header>

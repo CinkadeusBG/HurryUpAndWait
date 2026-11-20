@@ -3,6 +3,7 @@ import {
   DestroyRef,
   EventEmitter,
   Input,
+  NgZone,
   OnChanges,
   OnInit,
   Output,
@@ -48,8 +49,15 @@ import {
 export class ParkHeaderComponent implements OnInit, OnChanges {
   private readonly weatherService = inject(WeatherService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
+  private lastScrollY = 0;
+  private scrollDelta = 0;
+  private scrollLockUntil = 0;
+  private compactQuery?: MediaQueryList;
   private readonly resort$ = new BehaviorSubject<ResortId | null>(null);
   private readonly refreshRingRadius = 9;
+  isPhone = false;
+  trayCollapsed = false;
   parkLocalTime = '';
   refreshRingOffset = 2 * Math.PI * 9;
   refreshAriaLabelText = 'Waiting for first data refresh';
@@ -113,6 +121,97 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.resort$.next(this.selectedResort);
     this.syncTimeBoundValues();
+    this.compactQuery = window.matchMedia('(max-width: 720px)');
+    this.isPhone = this.compactQuery.matches;
+    this.compactQuery.addEventListener('change', this.onCompactChange);
+    this.lastScrollY = window.scrollY;
+    window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+    this.destroyRef.onDestroy(() => {
+      this.compactQuery?.removeEventListener('change', this.onCompactChange);
+      window.removeEventListener('scroll', this.onWindowScroll);
+    });
+  }
+
+  get compactTitle(): string {
+    if (this.favoritesMode) {
+      return 'Favorites';
+    }
+
+    return (
+      this.parks.find((park) => park.id === this.selectedParkId)?.shortName ??
+      'Wait times'
+    );
+  }
+
+  get compactTitleLabel(): string | null {
+    if (!this.isPhone) {
+      return null;
+    }
+
+    return this.trayCollapsed
+      ? `${this.compactTitle}. Show park controls`
+      : `${this.compactTitle}. Hide park controls`;
+  }
+
+  onCompactTitleClick(): void {
+    if (!this.isPhone) {
+      return;
+    }
+
+    this.setTrayCollapsed(!this.trayCollapsed);
+  }
+
+  private readonly onCompactChange = (event: MediaQueryListEvent): void => {
+    this.ngZone.run(() => {
+      this.isPhone = event.matches;
+      if (!this.isPhone) {
+        this.trayCollapsed = false;
+      }
+    });
+  };
+
+  private readonly onWindowScroll = (): void => {
+    if (!this.isPhone) {
+      return;
+    }
+
+    const y = Math.max(0, window.scrollY);
+    const delta = y - this.lastScrollY;
+    this.lastScrollY = y;
+
+    if (performance.now() < this.scrollLockUntil) {
+      return;
+    }
+
+    if (y < 16) {
+      this.scrollDelta = 0;
+      this.setTrayCollapsed(false);
+      return;
+    }
+
+    if (Math.abs(delta) < 2) {
+      return;
+    }
+
+    this.scrollDelta += delta;
+    if (this.scrollDelta > 28) {
+      this.scrollDelta = 0;
+      this.setTrayCollapsed(true);
+    } else if (this.scrollDelta < -28) {
+      this.scrollDelta = 0;
+      this.setTrayCollapsed(false);
+    }
+  };
+
+  private setTrayCollapsed(collapsed: boolean): void {
+    if (collapsed === this.trayCollapsed) {
+      return;
+    }
+
+    this.scrollLockUntil = performance.now() + 360;
+    this.ngZone.run(() => {
+      this.trayCollapsed = collapsed;
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

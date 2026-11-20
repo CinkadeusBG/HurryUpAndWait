@@ -184,6 +184,41 @@
   font-weight: 700;
 }
 
+.title-copy {
+  min-width: 0;
+}
+
+.compact-title-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.compact-chevron-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.compact-chevron {
+  font-size: 0.72rem;
+  transition: transform 0.2s ease;
+}
+
+.title-compact {
+  display: none;
+}
+
 .title {
   margin: 0.15rem 0 0;
   font-family: var(--font-display);
@@ -195,6 +230,11 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.header-tray,
+.header-tray-inner {
+  display: contents;
 }
 
 .selector-row {
@@ -505,31 +545,61 @@
 
 @media (max-width: 720px) {
   .park-header {
-    padding: max(0.75rem, env(safe-area-inset-top)) 0.75rem 0.75rem;
+    padding: max(0.4rem, env(safe-area-inset-top)) 0.75rem 0.45rem;
   }
 
   .brand-row {
-    flex-wrap: wrap;
-    gap: 0.65rem;
-    margin-bottom: 0.7rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0;
   }
 
   .brand-lockup {
     flex: 1 1 auto;
+    gap: 0.45rem;
   }
 
   .brand-mark {
-    width: 2.35rem;
-    height: 2.35rem;
+    display: none;
+  }
+
+  .compact-title-btn {
+    cursor: pointer;
+  }
+
+  .compact-chevron-btn {
+    display: inline-flex;
+  }
+
+  .park-header:not(.is-collapsed) .compact-chevron {
+    transform: rotate(180deg);
+  }
+
+  .eyebrow,
+  .title-full {
+    display: none;
+  }
+
+  .title-copy {
+    overflow: hidden;
   }
 
   .title {
-    font-size: 1.2rem;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .title-compact {
+    display: inline;
   }
 
   .header-actions {
-    flex: 1 1 100%;
-    justify-content: space-between;
+    flex: 0 0 auto;
+    gap: 0.15rem;
   }
 
   .board-link span {
@@ -546,21 +616,58 @@
 
   .board-link {
     position: relative;
-    width: 2.5rem;
+    width: 2.25rem;
+    min-height: 2.25rem;
     justify-content: center;
     padding: 0;
+    box-shadow: none;
   }
 
   .park-time-label {
     display: none;
   }
 
+  .park-time-badge,
+  .weather-badge {
+    min-height: 0;
+    padding: 0.2rem 0.35rem;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .header-tray {
+    display: block;
+    max-height: 9rem;
+    margin-top: 0.4rem;
+    overflow: hidden;
+    opacity: 1;
+    transition:
+      max-height 0.24s ease,
+      opacity 0.2s ease,
+      margin-top 0.24s ease;
+  }
+
+  .header-tray-inner {
+    display: block;
+  }
+
+  .park-header.is-collapsed .header-tray {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .selector-row {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.35rem;
   }
 
   .resort-toggles {
-    flex: 1 1 100%;
+    flex: 0 1 auto;
+    width: auto;
   }
 
   .resort-full {
@@ -568,15 +675,62 @@
   }
 
   .resort-short {
-    display: flex;
-    flex: 1;
-    min-width: 0;
+    display: block;
+    flex: 0 1 auto;
+    width: auto;
+  }
+
+  :host ::ng-deep .resort-short .resort-toggle,
+  :host ::ng-deep .resort-short .p-selectbutton {
+    width: auto;
+  }
+
+  :host ::ng-deep .resort-short .p-button {
+    flex: 0 0 auto;
+    min-height: 2.25rem;
+    padding-inline: 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .favorites-toggle > span:not(.favorites-count),
+  .hidden-toggle-label {
+    display: none;
   }
 
   .favorites-toggle,
   .hidden-toggle {
-    flex: 1;
+    position: relative;
+    flex: 0 0 auto;
+    width: 2.25rem;
+    min-width: 2.25rem;
     justify-content: center;
-    padding-inline: 0.55rem;
+    padding: 0;
+  }
+
+  .favorites-toggle .favorites-count,
+  .hidden-toggle .favorites-count {
+    position: absolute;
+    top: -0.15rem;
+    right: -0.15rem;
+    min-width: 1rem;
+    height: 1rem;
+    font-size: 0.62rem;
+  }
+
+  .park-selector-row {
+    margin-top: 0.35rem;
+  }
+
+  .park-chip {
+    min-height: 2.25rem;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-tray,
+  .compact-chevron {
+    transition: none;
   }
 }
