@@ -609,12 +609,36 @@
 }
 
 @media (max-width: 720px) {
+  :host {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  :host:nth-child(4n + 1),
+  :host:nth-child(4n + 2) {
+    background: rgba(255, 255, 255, 0.028);
+  }
+
+  :host-context(.favorites-mode) {
+    background: transparent;
+  }
+
+  :host-context(.favorites-mode):nth-child(odd) {
+    background: rgba(255, 255, 255, 0.028);
+  }
+
   :host:hover ::ng-deep .attraction-card.p-card {
     transform: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  :host:active ::ng-deep .attraction-card.p-card {
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .swipe-shell {
     overflow: hidden;
+    border-radius: 0;
     touch-action: pan-y;
     user-select: none;
   }
@@ -682,78 +706,390 @@
     }
   }
 
-  :host ::ng-deep .attraction-card .p-card-body,
+  :host ::ng-deep .attraction-card.p-card,
+  :host.status-down ::ng-deep .attraction-card.p-card,
+  :host.status-closed ::ng-deep .attraction-card.p-card,
+  :host.status-refurbishment ::ng-deep .attraction-card.p-card,
+  :host.is-user-hidden ::ng-deep .attraction-card.p-card {
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  :host ::ng-deep .attraction-card .p-card-body {
+    padding: 0.18rem 0.32rem 0.16rem 0.36rem;
+  }
+
   :host ::ng-deep .attraction-card .p-card-content {
-    padding: 0.45rem 0.65rem;
+    padding: 0;
   }
 
   .card-layout {
-    gap: 0.55rem;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 0;
+  }
+
+  .card-main {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.3rem;
     min-height: 0;
   }
 
   .card-header {
-    padding-right: 0;
+    position: static;
+    flex: 1 1 auto;
+    padding: 0;
+    min-width: 0;
   }
 
   .attraction-name {
-    font-size: 0.92rem;
-    line-height: 1.2;
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    font-weight: 550;
+    letter-spacing: -0.011em;
+    line-height: 1.15;
     min-height: 0;
+    color: #f3f6fb;
     -webkit-line-clamp: 1;
+  }
+
+  .attraction-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  :host:has(.favorite-ribbon.is-favorite) .attraction-name::before {
+    content: '★';
+    margin-right: 0.22rem;
+    color: var(--accent-gold);
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  :host.is-user-hidden .attraction-name {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(224, 140, 140, 0.85);
+  }
+
+  :host.is-user-hidden .card-main,
+  :host.is-user-hidden .card-layout > .wait-block,
+  :host.is-user-hidden .hours-block,
+  :host.is-user-hidden .show-times-block {
+    opacity: 0.42;
+  }
+
+  :host.status-down .attraction-name {
+    color: #e7d4d4;
   }
 
   .trend-chart-wrap {
     display: none;
   }
 
+  .card-meta {
+    flex: 0 0 auto;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .meta-chip,
   .category-chip {
     display: none;
   }
 
-  .card-meta {
-    gap: 0.3rem;
-    padding-top: 0.45rem;
+  .lightning-lane-chip {
+    display: inline-flex;
+    gap: 0.08rem;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: #e4d3a1;
+    font-size: 0.66rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+
+    .pi-bolt {
+      color: #e4d3a1;
+      font-size: 0.55rem;
+    }
   }
 
-  .card-meta:not(:has(.meta-chip:not(.category-chip))) {
+  .lightning-lane-chip.is-sold-out {
+    gap: 0.08rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #8b97ad;
+    opacity: 1;
+
+    .pi-bolt,
+    .lightning-lane-price {
+      color: #8b97ad;
+    }
+
+    .lightning-lane-price {
+      text-decoration-thickness: 1px;
+    }
+  }
+
+  .lightning-lane-sold-out-label {
     display: none;
   }
 
-  .meta-chip {
-    font-size: 0.68rem;
-    min-height: 1.45rem;
-    padding: 0.15rem 0.45rem;
+  :host-context(.favorites-mode) .park-chip {
+    display: inline-flex;
+    max-width: 6.5rem;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: #9aa6bd;
+    font-size: 0.64rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .card-layout > .wait-block {
+  .card-layout > .wait-block,
+  .hours-block,
+  .show-times-block {
     align-self: center;
-    margin-bottom: 0;
-    margin-right: 0;
+    margin: 0;
   }
 
-  .wait-block {
-    min-width: 3.6rem;
-    padding: 0.4rem 0.45rem;
+  .wait-block,
+  .wait-block-down,
+  .hours-block .wait-block,
+  .wait-low,
+  .wait-medium,
+  .wait-high,
+  .wait-extreme,
+  .wait-walkon,
+  .wait-muted {
+    width: 2.55rem;
+    min-width: 2.55rem;
+    flex: 0 0 2.55rem;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    animation: none;
   }
 
-  .wait-value {
-    font-size: 1.45rem;
+  .wait-unit,
+  .hours-label,
+  .show-times-label,
+  .show-times-toggle,
+  .down-since-line,
+  .down-duration-line {
+    display: none;
   }
 
-  .wait-block-down {
-    min-width: 4.6rem;
+  .wait-value,
+  .hours-block .wait-block .wait-value {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-align: right;
+    text-shadow: none;
+    white-space: nowrap;
+  }
+
+  .wait-low .wait-value {
+    color: #3ecf8e;
+  }
+
+  .wait-medium .wait-value {
+    color: #f0c14a;
+  }
+
+  .wait-high .wait-value {
+    color: #f08a3a;
+  }
+
+  .wait-extreme .wait-value {
+    color: #f07171;
+  }
+
+  .wait-walkon {
+    width: auto;
+    min-width: 2.55rem;
+    flex-basis: auto;
+  }
+
+  .wait-walkon .wait-value {
+    font-size: 0.62rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: #3ecf8e;
+  }
+
+  .wait-muted .wait-value,
+  :host.status-down .wait-muted .wait-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #8b97ad;
+    text-shadow: none;
+  }
+
+  :host.status-down .wait-block,
+  :host.status-down .hours-block,
+  :host.status-down .show-times-block,
+  :host.status-down .show-times-block.is-unavailable {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .down-status-title,
+  :host.status-down .wait-value,
+  :host.status-down .wait-muted .wait-value {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e07070;
+    text-shadow: none;
+  }
+
+  .not-opened-yet-title {
+    font-size: 0;
+    line-height: 1;
+
+    &::after {
+      content: 'Later';
+      font-size: 0.6rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      text-transform: uppercase;
+      color: #8b97ad;
+    }
+  }
+
+  :host.status-refurbishment .wait-block {
+    width: auto;
+    flex-basis: auto;
+  }
+
+  :host.status-refurbishment .wait-value {
+    font-size: 0;
+    line-height: 0;
+
+    &::after {
+      content: 'Refurb';
+      font-size: 0.58rem;
+      font-weight: 750;
+      letter-spacing: 0.05em;
+      line-height: 1;
+      text-transform: uppercase;
+      color: #d4b15a;
+    }
   }
 
   .hours-block,
   .show-times-block {
+    width: auto;
     min-width: 0;
-    max-width: 6.4rem;
-    padding: 0.4rem 0.5rem;
+    max-width: 5.4rem;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    text-align: right;
+  }
+
+  .hours-block:has(.wait-value) .hours-value,
+  .hours-block.is-unavailable .hours-value {
+    display: none;
+  }
+
+  .hours-block.is-unavailable::after {
+    content: '—';
+    color: #8b97ad;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .show-times-empty {
+    font-size: 0;
+
+    &::after {
+      content: '—';
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+      color: #8b97ad;
+    }
+  }
+
+  :host.status-down .show-times-empty {
+    font-size: 0;
+    color: transparent;
+  }
+
+  :host.status-down .show-times-empty::after,
+  :host.status-down .hours-block.is-unavailable::after {
+    content: 'Down';
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e07070;
   }
 
   .hours-value {
-    white-space: normal;
+    max-width: 5.4rem;
+    overflow: hidden;
+    color: #c5cedf;
+    font-size: 0.66rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
+  .show-times-list li:nth-child(n + 2) {
+    display: none;
+  }
+
+  .show-times-list li {
+    color: #d5deee;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
 }
