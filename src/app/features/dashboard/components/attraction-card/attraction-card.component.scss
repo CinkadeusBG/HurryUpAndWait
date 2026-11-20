@@ -586,15 +586,29 @@
     -webkit-line-clamp: 2;
   }
 
+  .category-chip {
+    display: none;
+  }
+
   .card-meta {
     gap: 0.3rem;
     padding-top: 0.45rem;
+  }
+
+  .card-meta:not(:has(.meta-chip:not(.category-chip))) {
+    display: none;
   }
 
   .meta-chip {
     font-size: 0.68rem;
     min-height: 1.45rem;
     padding: 0.15rem 0.45rem;
+  }
+
+  .card-layout > .wait-block {
+    align-self: center;
+    margin-bottom: 0;
+    margin-right: 0.85rem;
   }
 
   .wait-block {

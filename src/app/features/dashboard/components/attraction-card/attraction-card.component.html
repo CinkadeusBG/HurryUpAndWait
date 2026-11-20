@@ -53,12 +53,12 @@
           </span>
         }
         @if (attraction.area) {
-          <span class="meta-chip">{{ attraction.area }}</span>
+          <span class="meta-chip category-chip">{{ attraction.area }}</span>
         }
         @if (showAttractionType) {
-          <span class="meta-chip">{{ attractionTypeLabel }}</span>
+          <span class="meta-chip category-chip">{{ attractionTypeLabel }}</span>
         }
-        <span class="meta-chip type-chip">
+        <span class="meta-chip type-chip category-chip">
           <i [class]="entityTypeIcon" aria-hidden="true"></i>
           {{ entityTypeLabel }}
         </span>
