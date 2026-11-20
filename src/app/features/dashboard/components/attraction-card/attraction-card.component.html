@@ -13,7 +13,7 @@
     <span>{{ attraction.isFavorite ? 'Unfavorite' : 'Favorite' }}</span>
   </div>
   <div class="swipe-reveal swipe-reveal-hide" [class.is-visible]="swipeX < -8" aria-hidden="true">
-    <span>Hide</span>
+    <span>{{ hidden ? 'Unhide' : 'Hide' }}</span>
     <i class="pi pi-ban"></i>
   </div>
   <div class="swipe-face" [style.transform]="swipeTransform">
@@ -64,6 +64,12 @@
       }
 
       <div class="card-meta">
+        @if (hidden) {
+          <span class="meta-chip hidden-chip">
+            <i class="pi pi-ban" aria-hidden="true"></i>
+            Hidden
+          </span>
+        }
         @if (showParkName && attraction.parkName) {
           <span class="meta-chip park-chip">{{ attraction.parkName }}</span>
         }

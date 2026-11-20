@@ -26,6 +26,12 @@
               <i class="pi pi-ban" aria-hidden="true"></i>
             </button>
             <h3 class="show-name">{{ show.name }}</h3>
+            @if (isHidden(show.id)) {
+              <span class="hidden-tag">
+                <i class="pi pi-ban" aria-hidden="true"></i>
+                Hidden
+              </span>
+            }
             <div class="show-times">
               @for (time of upcomingShowTimes(show, tick); track time) {
                 <span class="time-chip">{{ time }}</span>
