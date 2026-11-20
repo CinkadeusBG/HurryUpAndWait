@@ -545,7 +545,12 @@
 
 @media (max-width: 720px) {
   .park-header {
-    padding: max(0.4rem, env(safe-area-inset-top)) 0.75rem 0.45rem;
+    padding: max(0.15rem, env(safe-area-inset-top)) 0.55rem 0.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: #070b14;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .brand-row {
@@ -588,7 +593,14 @@
   .title {
     margin: 0;
     overflow: hidden;
-    font-size: 1.05rem;
+    background: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    -webkit-text-fill-color: #f4f7fb;
+    color: #f4f7fb;
+    font-size: 0.98rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
@@ -616,10 +628,12 @@
 
   .board-link {
     position: relative;
-    width: 2.25rem;
-    min-height: 2.25rem;
+    width: 1.85rem;
+    min-height: 1.85rem;
     justify-content: center;
     padding: 0;
+    border-color: transparent;
+    background: transparent;
     box-shadow: none;
   }
 
@@ -630,10 +644,18 @@
   .park-time-badge,
   .weather-badge {
     min-height: 0;
-    padding: 0.2rem 0.35rem;
+    padding: 0 0.2rem;
     border: none;
     background: transparent;
     box-shadow: none;
+  }
+
+  .park-time-value,
+  .weather-temp {
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    color: #c5cedf;
   }
 
   .header-tray {
