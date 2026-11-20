@@ -14,20 +14,18 @@
       <ul class="show-list">
         @for (show of showsWithTimes(tick); track show.id) {
           <li class="show-item" [class.is-user-hidden]="isHidden(show.id)">
-            <div class="show-heading">
-              <h3 class="show-name">{{ show.name }}</h3>
-              <button
-                type="button"
-                class="hide-attraction-btn"
-                [class.is-hidden]="isHidden(show.id)"
-                (click)="hideToggle.emit(show.id)"
-                [attr.aria-pressed]="isHidden(show.id)"
-                [attr.aria-label]="isHidden(show.id) ? 'Unhide ' + show.name : 'Hide ' + show.name"
-                [title]="isHidden(show.id) ? 'Unhide attraction' : 'Hide attraction'"
-              >
-                <i class="pi pi-ban" aria-hidden="true"></i>
-              </button>
-            </div>
+            <button
+              type="button"
+              class="hide-ribbon"
+              [class.is-hidden]="isHidden(show.id)"
+              (click)="hideToggle.emit(show.id)"
+              [attr.aria-pressed]="isHidden(show.id)"
+              [attr.aria-label]="isHidden(show.id) ? 'Unhide ' + show.name : 'Hide ' + show.name"
+              [title]="isHidden(show.id) ? 'Unhide attraction' : 'Hide attraction'"
+            >
+              <i class="pi pi-ban" aria-hidden="true"></i>
+            </button>
+            <h3 class="show-name">{{ show.name }}</h3>
             <div class="show-times">
               @for (time of upcomingShowTimes(show, tick); track time) {
                 <span class="time-chip">{{ time }}</span>

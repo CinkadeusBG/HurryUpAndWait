@@ -96,57 +96,64 @@ a {
   border-radius: var(--radius-lg);
 }
 
-.hide-attraction-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
+.hide-ribbon {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  margin: 0;
+  width: 3.25rem;
+  height: 3.25rem;
   padding: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(8, 12, 24, 0.45);
-  color: var(--text-muted);
+  border: none;
+  background: transparent;
   cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
+  overflow: hidden;
 
-  i {
-    font-size: 0.95rem;
-    line-height: 1;
+  &::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 3.25rem 3.25rem 0 0;
+    border-color: transparent rgba(255, 255, 255, 0.14) transparent transparent;
+    transition: border-color 0.15s ease;
   }
 
-  &:hover {
-    color: #fecaca;
-    border-color: rgba(248, 113, 113, 0.5);
-    background: rgba(248, 113, 113, 0.16);
+  i {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    z-index: 1;
+    transition:
+      color 0.15s ease,
+      transform 0.15s ease,
+      filter 0.15s ease;
+  }
+
+  &:hover i {
+    transform: scale(1.12);
   }
 
   &.is-hidden {
-    color: #fecaca;
-    background: rgba(248, 113, 113, 0.24);
-    border-color: rgba(248, 113, 113, 0.62);
+    &::before {
+      border-color: transparent color-mix(in srgb, #f87171 72%, #2a0a0a) transparent transparent;
+    }
+
+    i {
+      color: #fecaca;
+      filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.65));
+    }
   }
 
   &:focus-visible {
     outline: 2px solid var(--accent-primary);
-    outline-offset: 2px;
-  }
-
-  &.has-label {
-    width: auto;
-    min-height: 2.25rem;
-    height: auto;
-    padding: 0.35rem 0.75rem;
-    border-radius: var(--radius-pill);
-    gap: 0.35rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    white-space: nowrap;
+    outline-offset: -2px;
   }
 }
 

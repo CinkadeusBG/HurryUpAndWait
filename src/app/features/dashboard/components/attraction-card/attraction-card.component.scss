@@ -155,9 +155,6 @@
 
 .card-header {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.45rem;
   padding-right: 2rem;
   padding-left: 0.15rem;
   flex: 1 1 auto;
@@ -220,6 +217,7 @@
 .show-times-block {
   align-self: center;
   flex-shrink: 0;
+  margin-bottom: 1.35rem;
 }
 
 .park-chip {

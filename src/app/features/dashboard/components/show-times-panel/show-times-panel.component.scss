@@ -11,22 +11,16 @@
 }
 
 .show-item {
-  padding: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  padding: 0.85rem 2.4rem 0.85rem 0.85rem;
   border-radius: 0.95rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.show-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.65rem;
-}
-
 .show-name {
   margin: 0;
-  flex: 1;
   min-width: 0;
   font-family: var(--font-display);
   font-size: 0.98rem;
