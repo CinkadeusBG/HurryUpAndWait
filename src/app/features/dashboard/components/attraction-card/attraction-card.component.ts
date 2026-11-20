@@ -1,8 +1,10 @@
 import {
   Component,
   DestroyRef,
+  ElementRef,
   EventEmitter,
   Input,
+  NgZone,
   OnChanges,
   OnInit,
   Output,
@@ -55,6 +57,19 @@ import {
 export class AttractionCardComponent implements OnInit, OnChanges {
   private readonly clock = inject(ClockService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private phoneQuery?: MediaQueryList;
+  private swipePointerId: number | null = null;
+  private swipeStartX = 0;
+  private swipeStartY = 0;
+  private swipeTracking = false;
+  private swipeAxis: 'x' | 'y' | null = null;
+  private suppressClick = false;
+  private noteTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly SWIPE_LOCK_PX = 8;
+  private static readonly SWIPE_COMMIT_PX = 72;
+  private static readonly SWIPE_MAX_PX = 112;
 
   @Input({ required: true }) attraction!: AttractionViewModel;
   @Input() showParkName = false;
@@ -68,6 +83,10 @@ export class AttractionCardComponent implements OnInit, OnChanges {
   readonly showTimePreviewLimit = SHOW_TIME_PREVIEW_LIMIT;
   displayedWaitValue = '';
   waitValueFading = false;
+  phoneLayout = false;
+  swipeX = 0;
+  swipeDragging = false;
+  swipeNote = '';
   private uiTick = 0;
   private waitValueKey = '';
   private waitFadeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -80,11 +99,138 @@ export class AttractionCardComponent implements OnInit, OnChanges {
       .subscribe((tick) => {
         this.uiTick = tick;
       });
+    this.phoneQuery = window.matchMedia('(max-width: 720px)');
+    this.phoneLayout = this.phoneQuery.matches;
+    this.phoneQuery.addEventListener('change', this.onPhoneChange);
+    this.host.nativeElement.addEventListener('click', this.onHostClick, true);
     this.destroyRef.onDestroy(() => {
       if (this.waitFadeTimer) {
         clearTimeout(this.waitFadeTimer);
       }
+      if (this.noteTimer) {
+        clearTimeout(this.noteTimer);
+      }
+      this.phoneQuery?.removeEventListener('change', this.onPhoneChange);
+      this.host.nativeElement.removeEventListener('click', this.onHostClick, true);
     });
+  }
+
+  get swipeTransform(): string | null {
+    return this.phoneLayout ? `translateX(${this.swipeX}px)` : null;
+  }
+
+  private readonly onPhoneChange = (event: MediaQueryListEvent): void => {
+    this.ngZone.run(() => {
+      this.phoneLayout = event.matches;
+      if (!this.phoneLayout) {
+        this.resetSwipe();
+      }
+    });
+  };
+
+  onSwipePointerDown(event: PointerEvent): void {
+    if (!this.phoneLayout || event.button !== 0) {
+      return;
+    }
+
+    if ((event.target as HTMLElement).closest('button')) {
+      return;
+    }
+
+    this.swipePointerId = event.pointerId;
+    this.swipeStartX = event.clientX;
+    this.swipeStartY = event.clientY;
+    this.swipeTracking = true;
+    this.swipeAxis = null;
+    this.swipeDragging = false;
+  }
+
+  onSwipePointerMove(event: PointerEvent): void {
+    if (!this.swipeTracking || event.pointerId !== this.swipePointerId) {
+      return;
+    }
+
+    const dx = event.clientX - this.swipeStartX;
+    const dy = event.clientY - this.swipeStartY;
+    if (!this.swipeAxis) {
+      if (
+        Math.abs(dx) < AttractionCardComponent.SWIPE_LOCK_PX &&
+        Math.abs(dy) < AttractionCardComponent.SWIPE_LOCK_PX
+      ) {
+        return;
+      }
+
+      this.swipeAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (this.swipeAxis === 'y') {
+        this.swipeTracking = false;
+        return;
+      }
+
+      this.swipeDragging = true;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+
+    if (this.swipeAxis !== 'x') {
+      return;
+    }
+
+    const max = AttractionCardComponent.SWIPE_MAX_PX;
+    this.swipeX = Math.max(-max, Math.min(max, dx));
+  }
+
+  onSwipePointerEnd(event: PointerEvent): void {
+    if (event.pointerId !== this.swipePointerId) {
+      return;
+    }
+
+    const dx = this.swipeX;
+    const moved = this.swipeDragging;
+    this.resetSwipe();
+    if (!moved) {
+      return;
+    }
+
+    this.suppressClick = true;
+    if (dx >= AttractionCardComponent.SWIPE_COMMIT_PX) {
+      const willFavorite = !this.attraction.isFavorite;
+      this.favoriteToggle.emit(this.attraction.id);
+      this.showSwipeNote(willFavorite ? 'Favorited' : 'Unfavorited');
+      return;
+    }
+
+    if (dx <= -AttractionCardComponent.SWIPE_COMMIT_PX) {
+      this.hideToggle.emit(this.attraction.id);
+    }
+  }
+
+  private readonly onHostClick = (event: Event): void => {
+    if (!this.suppressClick) {
+      return;
+    }
+
+    this.suppressClick = false;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  private resetSwipe(): void {
+    this.swipeTracking = false;
+    this.swipeDragging = false;
+    this.swipeAxis = null;
+    this.swipePointerId = null;
+    this.swipeX = 0;
+  }
+
+  private showSwipeNote(note: string): void {
+    if (this.noteTimer) {
+      clearTimeout(this.noteTimer);
+    }
+
+    this.swipeNote = note;
+    this.noteTimer = setTimeout(() => {
+      this.noteTimer = null;
+      this.swipeNote = '';
+    }, 900);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

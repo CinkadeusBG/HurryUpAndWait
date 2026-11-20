@@ -161,6 +161,12 @@
     padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
   }
 
+  .dashboard-main,
+  .attraction-grid,
+  .skeleton-grid {
+    gap: 0.45rem;
+  }
+
   .attractions-section {
     padding-inline: 0.75rem;
   }

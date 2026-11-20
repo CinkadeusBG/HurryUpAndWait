@@ -4,6 +4,33 @@
   min-width: 0;
 }
 
+.swipe-shell {
+  position: relative;
+  height: 100%;
+  border-radius: var(--radius-lg);
+}
+
+.swipe-reveal {
+  display: none;
+}
+
+.swipe-face {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+.swipe-note {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 :host:hover ::ng-deep .attraction-card.p-card {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--accent-primary) 35%, rgba(255, 255, 255, 0.1));
@@ -570,9 +597,82 @@
 }
 
 @media (max-width: 720px) {
+  :host:hover ::ng-deep .attraction-card.p-card {
+    transform: none;
+  }
+
+  .swipe-shell {
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .swipe-shell.is-favorited-flash ::ng-deep .attraction-card.p-card {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent-gold) 85%, white);
+  }
+
+  .swipe-shell.is-unfavorited-flash ::ng-deep .attraction-card.p-card {
+    box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.7);
+  }
+
+  .swipe-shell.is-dragging .swipe-face {
+    transition: none;
+  }
+
+  .swipe-face {
+    transition: transform 0.18s ease;
+  }
+
+  .swipe-reveal {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    opacity: 0;
+  }
+
+  .swipe-reveal.is-visible {
+    opacity: 1;
+  }
+
+  .swipe-reveal-favorite {
+    justify-content: flex-start;
+    color: #fff7d6;
+    background: color-mix(in srgb, var(--accent-gold) 78%, #1a1200);
+  }
+
+  .swipe-reveal-hide {
+    justify-content: flex-end;
+    color: #fecaca;
+    background: color-mix(in srgb, #f87171 72%, #2a0a0a);
+  }
+
+  .favorite-ribbon,
+  .hide-ribbon {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    pointer-events: none;
+
+    &::before,
+    i {
+      display: none;
+    }
+  }
+
   :host ::ng-deep .attraction-card .p-card-body,
   :host ::ng-deep .attraction-card .p-card-content {
-    padding: 0.7rem 0.7rem 0.75rem;
+    padding: 0.45rem 0.65rem;
   }
 
   .card-layout {
@@ -580,10 +680,19 @@
     min-height: 0;
   }
 
+  .card-header {
+    padding-right: 0;
+  }
+
   .attraction-name {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    line-height: 1.2;
     min-height: 0;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
+  }
+
+  .trend-chart-wrap {
+    display: none;
   }
 
   .category-chip {
@@ -608,7 +717,7 @@
   .card-layout > .wait-block {
     align-self: center;
     margin-bottom: 0;
-    margin-right: 0.85rem;
+    margin-right: 0;
   }
 
   .wait-block {
@@ -635,8 +744,4 @@
     white-space: normal;
   }
 
-  .trend-chart-wrap {
-    margin-top: 0.3rem;
-    padding-right: 0;
-  }
 }

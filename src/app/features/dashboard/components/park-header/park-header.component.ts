@@ -56,8 +56,10 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   private compactQuery?: MediaQueryList;
   private readonly resort$ = new BehaviorSubject<ResortId | null>(null);
   private readonly refreshRingRadius = 9;
-  isPhone = false;
-  trayCollapsed = false;
+  isPhone =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(max-width: 720px)').matches;
+  trayCollapsed = this.isPhone;
   parkLocalTime = '';
   refreshRingOffset = 2 * Math.PI * 9;
   refreshAriaLabelText = 'Waiting for first data refresh';
@@ -164,9 +166,7 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
   private readonly onCompactChange = (event: MediaQueryListEvent): void => {
     this.ngZone.run(() => {
       this.isPhone = event.matches;
-      if (!this.isPhone) {
-        this.trayCollapsed = false;
-      }
+      this.trayCollapsed = this.isPhone;
     });
   };
 
@@ -185,7 +185,6 @@ export class ParkHeaderComponent implements OnInit, OnChanges {
 
     if (y < 16) {
       this.scrollDelta = 0;
-      this.setTrayCollapsed(false);
       return;
     }
 

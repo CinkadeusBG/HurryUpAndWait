@@ -79,6 +79,10 @@
 }
 
 @media (max-width: 720px) {
+  :host {
+    display: none;
+  }
+
   .filter-toolbar {
     margin-inline: 0.75rem;
   }

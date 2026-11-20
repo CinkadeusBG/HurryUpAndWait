@@ -1,3 +1,23 @@
+<div
+  class="swipe-shell"
+  [class.is-dragging]="swipeDragging"
+  [class.is-favorited-flash]="swipeNote === 'Favorited'"
+  [class.is-unfavorited-flash]="swipeNote === 'Unfavorited'"
+  (pointerdown)="onSwipePointerDown($event)"
+  (pointermove)="onSwipePointerMove($event)"
+  (pointerup)="onSwipePointerEnd($event)"
+  (pointercancel)="onSwipePointerEnd($event)"
+>
+  <div class="swipe-reveal swipe-reveal-favorite" [class.is-visible]="swipeX > 8" aria-hidden="true">
+    <i class="pi pi-star-fill"></i>
+    <span>{{ attraction.isFavorite ? 'Unfavorite' : 'Favorite' }}</span>
+  </div>
+  <div class="swipe-reveal swipe-reveal-hide" [class.is-visible]="swipeX < -8" aria-hidden="true">
+    <span>Hide</span>
+    <i class="pi pi-ban"></i>
+  </div>
+  <div class="swipe-face" [style.transform]="swipeTransform">
+    <span class="swipe-note" aria-live="polite">{{ swipeNote }}</span>
 <p-card styleClass="attraction-card glass-card">
   <button
     type="button"
@@ -158,3 +178,5 @@
     }
   </div>
 </p-card>
+  </div>
+</div>
