@@ -608,28 +608,60 @@
   }
 }
 
+.wait-meter {
+  display: none;
+}
+
 @media (max-width: 720px) {
   :host {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    --band: #5d6b87;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.075);
   }
 
-  :host:nth-child(4n + 1),
-  :host:nth-child(4n + 2) {
-    background: rgba(255, 255, 255, 0.028);
+  :host:has(.wait-low),
+  :host:has(.wait-walkon) {
+    --band: #3ecf8e;
   }
 
-  :host-context(.favorites-mode) {
-    background: transparent;
+  :host:has(.wait-medium) {
+    --band: #f0c14a;
   }
 
-  :host-context(.favorites-mode):nth-child(odd) {
-    background: rgba(255, 255, 255, 0.028);
+  :host:has(.wait-high) {
+    --band: #f08a3a;
+  }
+
+  :host:has(.wait-extreme) {
+    --band: #f26d6d;
+  }
+
+  :host:has(.show-times-block) {
+    --band: #7fa6ff;
+  }
+
+  :host:has(.show-times-empty),
+  :host:has(.wait-muted) {
+    --band: #5d6b87;
+  }
+
+  :host.status-refurbishment {
+    --band: #d4b15a;
+  }
+
+  :host.status-down {
+    --band: #e46c6c;
+  }
+
+  :host:has(.not-opened-yet-title) {
+    --band: #5d6b87;
+  }
+
+  :host:has(.favorite-ribbon.is-favorite) {
+    background: rgba(245, 200, 66, 0.055);
   }
 
   :host:hover ::ng-deep .attraction-card.p-card {
     transform: none;
-    border-color: transparent;
-    box-shadow: none;
   }
 
   :host:active ::ng-deep .attraction-card.p-card {
@@ -718,14 +750,21 @@
     box-shadow: none;
     opacity: 1;
 
-    &::before,
+    &::before {
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 0;
+      background: var(--band);
+    }
+
     &::after {
       display: none;
     }
   }
 
   :host ::ng-deep .attraction-card .p-card-body {
-    padding: 0.18rem 0.32rem 0.16rem 0.36rem;
+    padding: 0.36rem 0.6rem 0.36rem 0.8rem;
   }
 
   :host ::ng-deep .attraction-card .p-card-content {
@@ -734,30 +773,31 @@
 
   .card-layout {
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.6rem;
     min-height: 0;
   }
 
   .card-main {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.3rem;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.12rem;
     min-height: 0;
   }
 
   .card-header {
     position: static;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     padding: 0;
     min-width: 0;
   }
 
   .attraction-name {
     font-family: var(--font-body);
-    font-size: 0.8125rem;
-    font-weight: 550;
-    letter-spacing: -0.011em;
-    line-height: 1.15;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
     min-height: 0;
     color: #f3f6fb;
     -webkit-line-clamp: 1;
@@ -771,10 +811,9 @@
 
   :host:has(.favorite-ribbon.is-favorite) .attraction-name::before {
     content: '★';
-    margin-right: 0.22rem;
+    margin-right: 0.28rem;
     color: var(--accent-gold);
-    font-size: 0.62rem;
-    font-weight: 700;
+    font-size: 0.7rem;
   }
 
   :host.is-user-hidden .attraction-name {
@@ -790,8 +829,13 @@
     opacity: 0.42;
   }
 
+  :host.status-closed .attraction-name,
+  :host.status-refurbishment .attraction-name {
+    color: #aab4c8;
+  }
+
   :host.status-down .attraction-name {
-    color: #e7d4d4;
+    color: #ecd2d2;
   }
 
   .trend-chart-wrap {
@@ -799,10 +843,17 @@
   }
 
   .card-meta {
-    flex: 0 0 auto;
-    gap: 0.15rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+    height: 0.75rem;
     margin: 0;
     padding: 0;
+    min-height: 0;
+  }
+
+  .card-meta:not(:has(.wait-meter, .lightning-lane-chip, .park-chip, .type-chip:not(:has(.pi-bolt)))) {
+    display: none;
   }
 
   .meta-chip,
@@ -810,30 +861,66 @@
     display: none;
   }
 
-  .lightning-lane-chip {
+  .wait-meter {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 2rem;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .wait-meter-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--band);
+  }
+
+  .type-chip {
     display: inline-flex;
-    gap: 0.08rem;
     min-height: 0;
     padding: 0;
     border: none;
-    border-radius: 0;
     background: none;
-    color: #e4d3a1;
-    font-size: 0.66rem;
+    font-size: 0;
+    line-height: 1;
+
+    i {
+      color: #7f8ca8;
+      font-size: 0.66rem;
+    }
+  }
+
+  .type-chip:has(.pi-bolt) {
+    display: none;
+  }
+
+  .lightning-lane-chip {
+    display: inline-flex;
+    gap: 0.15rem;
+    height: 0.75rem;
+    min-height: 0;
+    padding: 0 0.34rem;
+    border: 1px solid rgba(228, 211, 161, 0.4);
+    border-radius: var(--radius-pill);
+    background: rgba(228, 211, 161, 0.08);
+    color: #ecdcae;
+    font-size: 0.62rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    line-height: 1;
 
     .pi-bolt {
-      color: #e4d3a1;
-      font-size: 0.55rem;
+      color: #ecdcae;
+      font-size: 0.54rem;
     }
   }
 
   .lightning-lane-chip.is-sold-out {
-    gap: 0.08rem;
-    padding: 0;
-    border: none;
+    gap: 0.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     background: none;
     color: #8b97ad;
     opacity: 1;
@@ -852,17 +939,17 @@
     display: none;
   }
 
-  :host-context(.favorites-mode) .park-chip {
+  .park-chip {
     display: inline-flex;
-    max-width: 6.5rem;
+    max-width: 8rem;
     min-height: 0;
     padding: 0;
     overflow: hidden;
     border: none;
     border-radius: 0;
     background: none;
-    color: #9aa6bd;
-    font-size: 0.64rem;
+    color: #8f9bb4;
+    font-size: 0.68rem;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -875,26 +962,34 @@
     margin: 0;
   }
 
-  .wait-block,
-  .wait-block-down,
-  .hours-block .wait-block,
-  .wait-low,
-  .wait-medium,
-  .wait-high,
-  .wait-extreme,
-  .wait-walkon,
-  .wait-muted {
-    width: 2.55rem;
-    min-width: 2.55rem;
-    flex: 0 0 2.55rem;
+  .card-layout > .wait-block,
+  .hours-block .wait-block {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    min-width: 3rem;
+    height: 1.9rem;
     gap: 0;
     margin: 0;
     padding: 0;
-    border: none;
-    border-radius: 0;
-    background: none;
+    border: 1px solid color-mix(in srgb, var(--band) 40%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--band) 15%, #080d18);
     box-shadow: none;
     animation: none;
+  }
+
+  .card-layout > .wait-block.wait-muted {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: transparent;
+  }
+
+  .card-layout > .wait-block.wait-block-down,
+  :host.status-refurbishment .card-layout > .wait-block {
+    border-color: color-mix(in srgb, var(--band) 45%, transparent);
+    background: color-mix(in srgb, var(--band) 16%, #080d18);
   }
 
   .wait-unit,
@@ -908,53 +1003,43 @@
 
   .wait-value,
   .hours-block .wait-block .wait-value {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
     font-variant-numeric: tabular-nums lining-nums;
     line-height: 1;
     letter-spacing: -0.03em;
-    text-align: right;
+    color: var(--band);
     text-shadow: none;
     white-space: nowrap;
   }
 
-  .wait-low .wait-value {
-    color: #3ecf8e;
-  }
-
-  .wait-medium .wait-value {
-    color: #f0c14a;
-  }
-
-  .wait-high .wait-value {
-    color: #f08a3a;
-  }
-
+  .wait-low .wait-value,
+  .wait-medium .wait-value,
+  .wait-high .wait-value,
   .wait-extreme .wait-value {
-    color: #f07171;
-  }
-
-  .wait-walkon {
-    width: auto;
-    min-width: 2.55rem;
-    flex-basis: auto;
+    color: var(--band);
+    text-shadow: none;
   }
 
   .wait-walkon .wait-value {
-    font-size: 0.62rem;
-    font-weight: 750;
-    letter-spacing: 0.04em;
-    line-height: 1.05;
+    font-family: var(--font-body);
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    text-align: center;
     text-transform: uppercase;
-    color: #3ecf8e;
+    color: var(--band);
+    text-shadow: none;
   }
 
   .wait-muted .wait-value,
   :host.status-down .wait-muted .wait-value {
+    font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
-    color: #8b97ad;
+    color: #6f7c95;
     text-shadow: none;
   }
 
@@ -962,8 +1047,6 @@
   :host.status-down .hours-block,
   :host.status-down .show-times-block,
   :host.status-down .show-times-block.is-unavailable {
-    background: none;
-    border-color: transparent;
     box-shadow: none;
   }
 
@@ -971,12 +1054,12 @@
   :host.status-down .wait-value,
   :host.status-down .wait-muted .wait-value {
     font-family: var(--font-body);
-    font-size: 0.62rem;
-    font-weight: 750;
+    font-size: 0.6rem;
+    font-weight: 800;
     line-height: 1;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #e07070;
+    color: var(--band);
     text-shadow: none;
   }
 
@@ -986,18 +1069,13 @@
 
     &::after {
       content: 'Later';
-      font-size: 0.6rem;
-      font-weight: 750;
-      letter-spacing: 0.06em;
+      font-size: 0.56rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
       line-height: 1;
       text-transform: uppercase;
-      color: #8b97ad;
+      color: #8f9bb4;
     }
-  }
-
-  :host.status-refurbishment .wait-block {
-    width: auto;
-    flex-basis: auto;
   }
 
   :host.status-refurbishment .wait-value {
@@ -1006,22 +1084,21 @@
 
     &::after {
       content: 'Refurb';
-      font-size: 0.58rem;
-      font-weight: 750;
-      letter-spacing: 0.05em;
+      font-size: 0.54rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
       line-height: 1;
       text-transform: uppercase;
-      color: #d4b15a;
+      color: var(--band);
     }
   }
 
-  .hours-block,
-  .show-times-block {
-    width: auto;
-    min-width: 0;
-    max-width: 5.4rem;
+  .hours-block {
     flex: 0 0 auto;
     align-items: flex-end;
+    width: auto;
+    min-width: 0;
+    max-width: 5.8rem;
     padding: 0;
     border: none;
     border-radius: 0;
@@ -1036,9 +1113,54 @@
 
   .hours-block.is-unavailable::after {
     content: '—';
-    color: #8b97ad;
+    color: #6f7c95;
     font-size: 1rem;
     font-weight: 600;
+    line-height: 1;
+  }
+
+  .hours-value {
+    max-width: 5.8rem;
+    overflow: hidden;
+    color: #c5cedf;
+    font-size: 0.68rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .show-times-block {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 3rem;
+    max-width: none;
+    height: 1.9rem;
+    padding: 0 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--band) 40%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--band) 15%, #080d18);
+  }
+
+  .show-times-block:has(.show-times-empty) {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: transparent;
+  }
+
+  .show-times-list li:nth-child(n + 2) {
+    display: none;
+  }
+
+  .show-times-list li {
+    color: color-mix(in srgb, var(--band) 65%, white);
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
   }
 
@@ -1050,7 +1172,7 @@
       font-size: 1rem;
       font-weight: 600;
       line-height: 1;
-      color: #8b97ad;
+      color: #6f7c95;
     }
   }
 
@@ -1062,34 +1184,15 @@
   :host.status-down .show-times-empty::after,
   :host.status-down .hours-block.is-unavailable::after {
     content: 'Down';
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #e07070;
+    color: var(--band);
   }
 
-  .hours-value {
-    max-width: 5.4rem;
-    overflow: hidden;
-    color: #c5cedf;
-    font-size: 0.66rem;
-    font-weight: 650;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .show-times-list li:nth-child(n + 2) {
-    display: none;
-  }
-
-  .show-times-list li {
-    color: #d5deee;
-    font-size: 0.78rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
+  :host.status-down .show-times-block:has(.show-times-empty) {
+    border-color: color-mix(in srgb, var(--band) 45%, transparent);
+    background: color-mix(in srgb, var(--band) 16%, #080d18);
   }
 }

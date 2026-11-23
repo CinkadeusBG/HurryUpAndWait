@@ -546,7 +546,7 @@
 @media (max-width: 720px) {
   .park-header {
     padding: max(0.15rem, env(safe-area-inset-top)) 0.55rem 0.15rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid color-mix(in srgb, var(--resort-accent, var(--accent-primary)) 70%, transparent);
     background: #070b14;
     box-shadow: none;
     backdrop-filter: none;

@@ -41,6 +41,16 @@
         } @else if (openAttractions.length === 0 && closedAttractions.length === 0) {
           <p class="empty-state">{{ emptyStateMessage }}</p>
         } @else if (openAttractions.length > 0) {
+          <div class="board-heading" aria-hidden="true">
+            <span class="board-heading-title">Live waits</span>
+            <span class="board-key">
+              <span class="key-item key-low">15</span>
+              <span class="key-item key-medium">30</span>
+              <span class="key-item key-high">60</span>
+              <span class="key-item key-extreme">60+</span>
+              <span class="key-unit">min</span>
+            </span>
+          </div>
           <div class="attraction-grid">
             @for (attraction of openAttractions; track attraction.id) {
               <app-attraction-card

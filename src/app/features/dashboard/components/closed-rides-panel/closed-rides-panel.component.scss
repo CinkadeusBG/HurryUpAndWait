@@ -6,9 +6,10 @@
 
 @media (max-width: 720px) {
   .closed-panel {
-    margin: 0.15rem 0.15rem 0.35rem;
-    padding: 0.45rem 0 0.1rem;
+    margin: 0.6rem 0 0.35rem;
+    padding: 0;
     border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -17,28 +18,19 @@
   }
 
   .closed-panel-title {
-    margin: 0 0.45rem 0.15rem;
+    margin: 0;
+    padding: 0.5rem 0.8rem 0.3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.075);
     font-family: var(--font-body);
     font-size: 0.64rem;
-    font-weight: 650;
-    letter-spacing: 0.14em;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
   .closed-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0;
-    column-gap: 0.7rem;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12));
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: 1px 100%;
-  }
-
-  :host-context(.favorites-mode) .closed-grid {
     grid-template-columns: minmax(0, 1fr);
-    column-gap: 0;
-    background-image: none;
+    gap: 0;
   }
 }
 

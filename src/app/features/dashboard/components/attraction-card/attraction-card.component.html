@@ -64,6 +64,11 @@
       }
 
       <div class="card-meta">
+        @if (showWaitMeter) {
+          <span class="wait-meter" [attr.data-band]="waitBand" aria-hidden="true">
+            <span class="wait-meter-fill" [style.width.%]="waitMeterPercent"></span>
+          </span>
+        }
         @if (hidden) {
           <span class="meta-chip hidden-chip">
             <i class="pi pi-ban" aria-hidden="true"></i>
