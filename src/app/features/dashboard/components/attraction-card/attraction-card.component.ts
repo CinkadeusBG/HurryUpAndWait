@@ -91,6 +91,7 @@ export class AttractionCardComponent implements OnInit, OnChanges {
   private waitValueKey = '';
   private waitFadeTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly WAIT_FADE_MS = 160;
+  private static readonly WAIT_METER_MAX_MINUTES = 90;
 
   ngOnInit(): void {
     this.syncDisplayedWait(false);
@@ -375,6 +376,19 @@ export class AttractionCardComponent implements OnInit, OnChanges {
 
   get waitClass(): string {
     return getWaitTimeClass(this.attraction.waitTime, this.isOpen);
+  }
+
+  get waitBand(): string {
+    return this.waitClass.replace('wait-', '');
+  }
+
+  get showWaitMeter(): boolean {
+    return this.isOpen && this.attraction.waitTime !== null && !this.isPerformanceShow;
+  }
+
+  get waitMeterPercent(): number {
+    const share = (this.attraction.waitTime ?? 0) / AttractionCardComponent.WAIT_METER_MAX_MINUTES;
+    return Math.min(100, Math.max(6, share * 100));
   }
 
   get waitDisplay(): string {
